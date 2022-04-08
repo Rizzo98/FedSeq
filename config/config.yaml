@@ -1,0 +1,45 @@
+defaults:
+  - model: lenet
+  - algo: fedavg
+  - dataset: cifar10
+  - _self_
+
+n_round: 10
+device: 'cpu'
+
+seed: 2021
+output_suffix: ""
+do_train: True
+reload_checkpoint: False
+test_on_data: 
+  dataset: null
+  model: fedseq-thesis/test-project/y5j6jsug/models/model_r6.pt
+ #null, {run_path}/models/{model_name} e.g.run_path=fedseq-thesis/test-project/1evvle06
+
+root: ${oc.env:PWD}
+savedir: ${oc.env:PWD}/output/${algo.type}/${now:%Y-%m-%d_%H-%M-%S}
+
+wandb:
+  entity: "fedseq-thesis"
+  centralized:
+    policy: "last" # last vs all
+    tot_round: 2
+  client_datasets: true # true/false
+  superclient_datasets: true #true/false
+
+
+
+hydra:
+  run:
+    dir: ${oc.env:PWD}/output/${algo.type}/${now:%Y-%m-%d_%H-%M-%S}
+  sweep:
+    # Output directory for sweep runs
+    dir: ${oc.env:PWD}/output/${algo.type}/${now:%Y-%m-%d_%H-%M-%S}/${hydra.job.name}
+    # Output sub directory for sweep runs.
+    subdir: ${hydra.job.num}_${hydra.job.id}
+  job_logging:
+    handlers:
+      file:
+        class: logging.FileHandler
+        formatter: simple
+        filename: ${hydra.job.name}${output_suffix}.log

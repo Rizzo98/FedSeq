@@ -1,0 +1,6 @@
+# @package _global_
+model:
+  type: emnist
+  classname: emnistCNN
+  feature_extract: False #False means finetuning
+  pretrained: False

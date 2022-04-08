@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - optim@algo.params: sgd
+  - loss@algo.params: crossentropy
+
+
+algo:
+  type: centralized
+  classname: Centralized
+  params:
+    batch_size: 64

@@ -1,0 +1,24 @@
+# @package _global_
+algo:
+  type: fedbase
+  classname: FedBase
+  params:
+    common:
+      E: 1
+      K: 50
+      C: 0.2
+      B: 64
+      alpha: 0
+      max_iter_dirichlet: 100
+      rebalance: False
+      dp:
+    center_server:
+      classname: ??? # must be provided by specialized methods
+      args: {}
+    client:
+      classname: ???
+      args: {}
+    aggregation_policy: # weighted or uniform
+    save_models: False
+    clients_dropout: 0
+    save_checkpoint_period: 100

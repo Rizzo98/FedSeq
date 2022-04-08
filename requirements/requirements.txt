@@ -1,0 +1,12 @@
+numpy
+hydra-core
+tensorboard
+torch
+torchvision
+omegaconf
+scipy
+pulp
+sklearn
+matplotlib
+wandb
+tqdm

@@ -1,0 +1,9 @@
+name: cifar10
+dataset_class: CifarLocalDataset
+dataset_num_class: 10
+dataset_size: 50000
+num_exemplar: 100
+average_accuracy_rounds: 2
+params:
+  max_iter_dirichlet: 100
+  rebalance: False

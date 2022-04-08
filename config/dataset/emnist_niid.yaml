@@ -1,0 +1,7 @@
+name: emnist_niid
+dataset_class: ShakespeareLocalDataset
+dataset_num_class: 62
+dataset_size: to_do
+num_exemplar: to_do
+average_accuracy_rounds: 100
+params:

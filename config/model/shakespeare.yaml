@@ -1,0 +1,9 @@
+# @package _global_
+model:
+  type: shakespeare
+  classname: ShakespeareRnn
+  feature_extract: False #False means finetuning
+  pretrained: False
+  input_length: 80
+  embed_size: 8
+  hidden_size: 100

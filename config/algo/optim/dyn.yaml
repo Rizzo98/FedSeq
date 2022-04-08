@@ -1,0 +1,8 @@
+# @package _global_
+optim:
+  type: dyn
+  classname: FedDynOptimizer
+  args:
+    lr: 0.01
+    weight_decay: 4e-4
+    alpha: 0.1

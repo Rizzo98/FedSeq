@@ -1,0 +1,16 @@
+# @package _global_
+defaults:
+  - fedseq
+  - override optim@algo.params: scaf
+
+algo:
+  type: fedseq_scaffold
+  classname: FedSeqSCAFFOLD
+  params:
+    center_server:
+      classname: SCAFFOLDCenterServer
+      args:
+        num_clients: ${algo.params.common.K}
+    client:
+      classname: SCAFFOLDClient
+      args: {}
