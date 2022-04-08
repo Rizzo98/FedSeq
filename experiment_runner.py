@@ -311,7 +311,7 @@ def main():
     ]
     """
     experiments = [
-        FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy classifierLast",
+        FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy classifierLast C:0.1",
                                   "",
                                   Param("algo", "fedseq"),
                                   Param("n_round", 250),
@@ -319,29 +319,59 @@ def main():
                                   Param("algo.params.clustering.classname","GreedyClusterMaker"),
                                   MultiParam.key("algo.params.clustering.measure",
                                         ["cosine", "wasserstein"]),
-                                  MultiParam.key("dataset", ["shakespeare_iid", "shakespeare_niid"]),
-                                  MultiParam.key("common.C", [0.1, 0.2]),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.1),
                                   MultiParam.dict("algo.params.clustering",
                                                   {"min_examples": [4000, 8000],
                                                    "max_clients": [3, 5]}),
-                                  runner_options={"--time": "00:30:00"}
+                                  runner_options={"--time": "00:45:00"}
                                   ),
 
-        FedExperiment.from_params("FedSeq - runs comparison shakespeare - KMeans",
+        FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy classifierLast C:0.2",
+                                  "",
+                                  Param("algo", "fedseq"),
+                                  Param("n_round", 250),
+                                  Param("algo.params.evaluator.extract", "classifierLast"),
+                                  Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                  MultiParam.key("algo.params.clustering.measure",
+                                        ["cosine", "wasserstein"]),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.2),
+                                  MultiParam.dict("algo.params.clustering",
+                                                  {"min_examples": [4000, 8000],
+                                                   "max_clients": [3, 5]}),
+                                  runner_options={"--time": "00:45:00"}
+                                  ),
+
+        FedExperiment.from_params("FedSeq - runs comparison shakespeare - KMeans C:0.1",
                                   "",
                                   Param("algo", "fedseq"),
                                   Param("n_round", 250),
                                   MultiParam.key("algo.params.evaluator.extract", ["classifierLast","confidence"]),
                                   Param("algo.params.clustering.classname","KMeansClusterMaker"),
-                                  MultiParam.key("dataset", ["shakespeare_iid", "shakespeare_niid"]),
-                                  MultiParam.key("common.C", [0.1, 0.2]),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.1),
                                   MultiParam.dict("algo.params.clustering",
                                                   {"min_examples": [4000, 8000],
                                                    "max_clients": [3, 5]}),
-                                  runner_options={"--time": "00:30:00"}
+                                  runner_options={"--time": "00:45:00"}
+                                  ),
+        
+        FedExperiment.from_params("FedSeq - runs comparison shakespeare - KMeans C:0.2",
+                                  "",
+                                  Param("algo", "fedseq"),
+                                  Param("n_round", 250),
+                                  MultiParam.key("algo.params.evaluator.extract", ["classifierLast","confidence"]),
+                                  Param("algo.params.clustering.classname","KMeansClusterMaker"),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.2),
+                                  MultiParam.dict("algo.params.clustering",
+                                                  {"min_examples": [4000, 8000],
+                                                   "max_clients": [3, 5]}),
+                                  runner_options={"--time": "01:20:00"}
                                   ),
 
-        FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy confidence",
+        FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy confidence C:0.1",
                                   "",
                                   Param("algo", "fedseq"),
                                   Param("n_round", 250),
@@ -349,12 +379,28 @@ def main():
                                   Param("algo.params.clustering.classname","GreedyClusterMaker"),
                                   MultiParam.key("algo.params.clustering.measure",
                                         ["gini", "kullback"]),
-                                  MultiParam.key("dataset", ["shakespeare_iid", "shakespeare_niid"]),
-                                  MultiParam.key("common.C", [0.1, 0.2]),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.1),
                                   MultiParam.dict("algo.params.clustering",
                                                   {"min_examples": [4000, 8000],
                                                    "max_clients": [3, 5]}),
-                                  runner_options={"--time": "00:30:00"}
+                                  runner_options={"--time": "00:45:00"}
+                                  ),
+        
+        FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy confidence C:0.2",
+                                  "",
+                                  Param("algo", "fedseq"),
+                                  Param("n_round", 250),
+                                  Param("algo.params.evaluator.extract", "confidence"),
+                                  Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                  MultiParam.key("algo.params.clustering.measure",
+                                        ["gini", "kullback"]),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.2),
+                                  MultiParam.dict("algo.params.clustering",
+                                                  {"min_examples": [4000, 8000],
+                                                   "max_clients": [3, 5]}),
+                                  runner_options={"--time": "01:20:00"}
                                   ),
         
         FedExperiment.from_params("FedSeq - runs comparison shakespeare - Random C 0.2",
@@ -362,12 +408,12 @@ def main():
                                   Param("algo", "fedseq"),
                                   Param("n_round", 250),
                                   Param("algo.params.clustering.classname","RandomClusterMaker"),
-                                  MultiParam.key("dataset", ["shakespeare_iid", "shakespeare_niid"]),
+                                  Param("dataset", "shakespeare_niid"),
                                   Param("common.C", 0.2),
                                   MultiParam.dict("algo.params.clustering",
                                                   {"min_examples": [4000, 8000],
                                                    "max_clients": [3, 5]}),
-                                  runner_options={"--time": "00:30:00"}
+                                  runner_options={"--time": "00:50:00"}
                                   )
 
     ]

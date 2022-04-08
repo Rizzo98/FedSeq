@@ -167,18 +167,16 @@ class SlurmRunner(Runner):
     def run(self, python_file: str, model: FedModel, name: str, times: int = 1,
             options: Optional[Dict[str, str]] = None, *args, **kwargs):
         options = options or {}
-        random.seed(self.seed)
-        seeds = random.randint(0, 1000000, times)
         dependencies = []
         for i in range(times):
             new_name = f"{name}_iteration{i + 1}"
             run_options = self.__run_options(new_name, options, model)
             model.set_param("output_suffix", Param("output_suffix", f"_iteration{i + 1}"))
-            model.set_param("seed", Param("seed", seeds[i]))
+            model.set_param("seed", Param("seed", self.seed))
             cmd_line_command = Runner.run_command(python_file, model)
             SlurmRunner.make_script(cmd_line_command, self.__scripts_dir, new_name, run_options)
             if self.__run_sbatch:
-                #self.__jobs[new_name] = sbatch(os.path.join(self.__scripts_dir, f"{new_name}.sh"))
+                self.__jobs[new_name] = sbatch(os.path.join(self.__scripts_dir, f"{new_name}.sh"))
                 dependencies.append(self.__jobs[new_name])
         if times > 1 and self.__run_sbatch:
             self.run_aggregation(name, model.params["savedir"].value, dependencies)
@@ -189,7 +187,7 @@ class SlurmRunner(Runner):
         job_list = ':'.join(dependencies)
         run_options = {"--dependency": f"afterok:{job_list}", "--job-name": job_name}
         SlurmRunner.make_script(cmd_line_command, self.__scripts_dir, job_name, run_options)
-        #self.__jobs[job_name] = sbatch(os.path.join(self.__scripts_dir, f"{job_name}.sh"))
+        self.__jobs[job_name] = sbatch(os.path.join(self.__scripts_dir, f"{job_name}.sh"))
 
     @staticmethod
     def make_script(cmd_line_command: List[str], where: str, name: str, options: Dict[str, str]):
