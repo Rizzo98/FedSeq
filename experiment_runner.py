@@ -414,6 +414,15 @@ def main():
                                                   {"min_examples": [4000, 8000],
                                                    "max_clients": [3, 5]}),
                                   runner_options={"--time": "00:50:00"}
+                                  ),
+        
+        FedExperiment.from_params("FedAvg - runs shakespeare - C 0.2",
+                                  "",
+                                  Param("algo", "fedavg"),
+                                  Param("n_round", 250),
+                                  Param("dataset", "shakespeare_niid"),
+                                  Param("common.C", 0.2),
+                                  runner_options={"--time": "00:50:00"}
                                   )
 
     ]
