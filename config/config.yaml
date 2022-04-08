@@ -1,11 +1,11 @@
 defaults:
-  - model: lenet
-  - algo: fedavg
-  - dataset: cifar10
+  - model: shakespeare
+  - algo: fedseq
+  - dataset: shakespeare_niid
   - _self_
 
-n_round: 10
-device: 'cpu'
+n_round: 250
+device: 'cuda:0'
 
 seed: 2021
 output_suffix: ""

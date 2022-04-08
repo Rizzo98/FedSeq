@@ -14,7 +14,7 @@ algo:
       disomogeneity_measures: ["gini", "kullback"] #measures that apply only to probability distributions
       classname: RandomClusterMaker
       max_clients: 5
-      min_examples: 400
+      min_examples: 8000
       measure: cosine
       save_statistics: False
       verbose: False

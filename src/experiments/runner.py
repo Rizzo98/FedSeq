@@ -130,7 +130,8 @@ class SlurmRunner(Runner):
         if not scripts_dir:
             self.__scripts_dir = os.path.join(os.getcwd(), "output", f"slurmScripts{datetime.now()}")
         os.makedirs(self.__scripts_dir, exist_ok=True)
-        self.default_options = {"--gres": "gpu:1", "--cpus-per-task": "1", "--partition": "cuda"}
+        self.default_options = {"--gres": "gpu:1", "--cpus-per-task": "1", "--partition": "cuda",\
+            "--mail-user": "andrea.rizzardi@studenti.polito.it", "--mail-type":"ALL"}
         self.default_options.update(defaults)
 
     def calculate_run_time(self, model: FedModel) -> Tuple[int, int, int, int]:
@@ -175,9 +176,9 @@ class SlurmRunner(Runner):
             model.set_param("seed", Param("seed", self.seed))
             cmd_line_command = Runner.run_command(python_file, model)
             SlurmRunner.make_script(cmd_line_command, self.__scripts_dir, new_name, run_options)
-            if self.__run_sbatch:
-                self.__jobs[new_name] = sbatch(os.path.join(self.__scripts_dir, f"{new_name}.sh"))
-                dependencies.append(self.__jobs[new_name])
+            # if self.__run_sbatch:
+            #     self.__jobs[new_name] = sbatch(os.path.join(self.__scripts_dir, f"{new_name}.sh"))
+            #     dependencies.append(self.__jobs[new_name])
         if times > 1 and self.__run_sbatch:
             self.run_aggregation(name, model.params["savedir"].value, dependencies)
 
