@@ -176,9 +176,9 @@ class SlurmRunner(Runner):
             model.set_param("seed", Param("seed", self.seed))
             cmd_line_command = Runner.run_command(python_file, model)
             SlurmRunner.make_script(cmd_line_command, self.__scripts_dir, new_name, run_options)
-            # if self.__run_sbatch:
-            #     self.__jobs[new_name] = sbatch(os.path.join(self.__scripts_dir, f"{new_name}.sh"))
-            #     dependencies.append(self.__jobs[new_name])
+            if self.__run_sbatch:
+                self.__jobs[new_name] = sbatch(os.path.join(self.__scripts_dir, f"{new_name}.sh"))
+                dependencies.append(self.__jobs[new_name])
         if times > 1 and self.__run_sbatch:
             self.run_aggregation(name, model.params["savedir"].value, dependencies)
 

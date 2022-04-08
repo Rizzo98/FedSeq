@@ -140,7 +140,7 @@ class WanDBSummaryWriter:
         wandb.run.summary[name] = value
     
     def add_table(self, data, columns, title):
-        self.add_scalar(title,wandb.Table(data=data, columns=columns))
+        self.add_scalar(title,wandb.Table(data=data, columns=columns),0)
 
     def add_local_var(self, name, value):
         if name in self.local_store.keys():

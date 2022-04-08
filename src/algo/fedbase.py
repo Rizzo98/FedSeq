@@ -78,7 +78,7 @@ class FedBase(Algo):
             self.writer.add_scalar("val/loss", test_loss, self._round)
             self.writer.add_scalar("val/accuracy", accuracy, self._round)
             self.writer.add_scalar("val/time_elapsed", now, self._round)
-            if self.num_round-self._round<=self.dataset.average_accuracy_rounds:
+            if self.num_round-self._round<self.dataset.average_accuracy_rounds:
                 self.writer.add_local_var('Avg_acc',accuracy)
         self.result['loss'].append(test_loss)
         self.result['accuracy'].append(accuracy)

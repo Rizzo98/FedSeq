@@ -147,4 +147,5 @@ wandb/
 # outputs
 outputs/
 
+#slurm
 /exp_launcher.sbatch

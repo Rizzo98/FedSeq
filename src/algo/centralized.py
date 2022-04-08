@@ -87,7 +87,7 @@ class Centralized(Algo):
             if self._round%self.wandbConf.centralized.tot_round==0:
                 name = "model" if self.wandbConf.centralized.policy=='last' else f'model_r{self._round}'
                 self.writer.save_model(self.model, name=name)
-            if self.epochs-self._round<=self.dataset.average_accuracy_rounds:
+            if self.epochs-self._round<self.dataset.average_accuracy_rounds:
                 self.writer.add_local_var('Avg_acc',accuracy)
             self.writer.add_scalar("val/loss", test_loss, self._round)
             self.writer.add_scalar("val/accuracy", accuracy, self._round)
