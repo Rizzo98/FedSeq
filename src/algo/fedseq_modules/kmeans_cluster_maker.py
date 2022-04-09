@@ -58,3 +58,6 @@ class KMeansClusterMaker(InformedClusterMaker):
 
     def uses_custom_metric(self) -> bool:
         return True
+    
+    def requires_incompatibility_check(self) -> bool:
+        return False

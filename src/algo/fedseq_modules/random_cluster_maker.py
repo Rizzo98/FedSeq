@@ -28,3 +28,6 @@ class RandomClusterMaker(ClusterMaker):
         self._check_redistribution(cluster, clusters)
         self._collect_clustering_statistics(clients, ("clusters", [c.clients_id() for c in clusters]))
         return clusters
+    
+    def requires_incompatibility_check(self) -> bool:
+        return False

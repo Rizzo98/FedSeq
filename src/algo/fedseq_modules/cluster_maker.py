@@ -106,6 +106,10 @@ class ClusterMaker(ABC):
     def _make_clusters(self, clients: List[Client], representers: List[np.ndarray]) -> List[ClientCluster]:
         pass
 
+    @abstractmethod
+    def requires_incompatibility_check(self) -> bool:
+        pass
+
     def _collect_clustering_statistics(self, clients: List[Client], *groups: Tuple[str, Any]):
         if self._save_statistics:
             self._statistics.update({"classname": self.__class__.__name__})

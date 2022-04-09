@@ -65,11 +65,14 @@ class FedSeq(FedBase):
         self.result.update({"forgetting_stats": [{}]})
 
     def evaluate_if_needed(self, clustering_methods) -> Dict[str, ClientEvaluation]:
-        at_least_one_extraction_needed = any(measure not in self.incompatibilities[extr]
-                                             for extr in self.extractions for measure in self.clustering_measures)
-        assert at_least_one_extraction_needed, \
-            f"Incompatibility between extraction set={self.extractions} " \
-            f"and clustering measure set={self.clustering.measures_eval}"
+        for method in clustering_methods.values():
+            if method.requires_incompatibility_check():      
+                at_least_one_extraction_needed = any(measure not in self.incompatibilities[extr]
+                                                    for extr in self.extractions for measure in self.clustering_measures)
+                assert at_least_one_extraction_needed, \
+                    f"Incompatibility between extraction set={self.extractions} " \
+                    f"and clustering measure set={self.clustering.measures_eval}"
+
         # use the elements extracted from test set as examplars
         exemplar_dataset = self.excluded_from_test
         evaluations = {}

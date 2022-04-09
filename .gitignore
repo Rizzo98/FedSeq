@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+#slurm output
+*.out
+
 # Distribution / packaging
 .Python
 build/
