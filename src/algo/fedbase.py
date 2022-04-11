@@ -32,6 +32,9 @@ class FedBase(Algo):
         self.aggregation_policy = params.aggregation_policy
         self.save_checkpoint_period = params.save_checkpoint_period
         self.wandbConf = wandbConf
+        self.accuracy_centralized = dataset.accuracy_centralized
+        self.percentages_saved = dataset.percentages_saved
+        self.epochs_avg_accuracy = 5
         # get the proper dataset
         self.local_datasets, self.test_dataset = create_datasets(self.dataset, self.num_clients, alpha)
         self.model_info = model_info
@@ -80,6 +83,15 @@ class FedBase(Algo):
             self.writer.add_scalar("val/time_elapsed", now, self._round)
             if self.num_round-self._round<self.dataset.average_accuracy_rounds:
                 self.writer.add_local_var('Avg_acc',accuracy)
+            if self._round == 0:
+                    self.writer.add_local_var('Last_rounds_accuracies', [-1]*self.epochs_avg_accuracy)
+                    self.writer.add_local_var('index_passed_percentage', 0)
+            if self.accuracy_centralized != None and self.writer.local_store['index_passed_percentage'] < len(self.percentages_saved):
+                self.writer.local_store['Last_rounds_accuracies'][self._round % self.epochs_avg_accuracy] = accuracy
+                last_rounds_avg = np.average(list(filter(lambda x: x!=-1, self.writer.local_store['Last_rounds_accuracies'])))
+                if last_rounds_avg > self.percentages_saved[self.writer.local_store['index_passed_percentage']]*self.accuracy_centralized:
+                    self.writer.add_summary_value(f"round_over_{self.percentages_saved[self.writer.local_store['index_passed_percentage']]}_acc", self._round)   
+                    self.writer.add_local_var('index_passed_percentage', 1)
         self.result['loss'].append(test_loss)
         self.result['accuracy'].append(accuracy)
         self.result['time_elapsed'].append(now)

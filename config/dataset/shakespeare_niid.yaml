@@ -3,5 +3,7 @@ dataset_class: ShakespeareLocalDataset
 dataset_num_class: 80
 dataset_size: 200000
 num_exemplar: 800
-average_accuracy_rounds: 3
+average_accuracy_rounds: 25
+accuracy_centralized: 52 
+percentages_saved: [0.3, 0.4, 0.5]
 params:
