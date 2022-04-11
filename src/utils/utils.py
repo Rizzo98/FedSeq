@@ -101,13 +101,13 @@ class WanDBSummaryWriter:
         if "_" in config.dataset.name:
             project_name = config.dataset.name.split('_')[0]
             if config.algo.type!='centralized':
-                iid_ness = f'split:{(config.dataset.name.split("_")[1]).upper()}'
+                iid_ness = f'_split:{(config.dataset.name.split("_")[1]).upper()}'
         else:
             project_name = config.dataset.name
             if 'common' in config.algo.params:
-                iid_ness = f'alpha:{config.algo.params.common.alpha}'
+                iid_ness = f'_alpha:{config.algo.params.common.alpha}'
         n_rounds = f'rounds:{config.n_round}'
-        run_name = f'{config.algo.type}_{iid_ness}_{n_rounds}'
+        run_name = f'{config.algo.type}{iid_ness}_{n_rounds}'
         if config.algo.type!='centralized':
             participation = f'C:{config.algo.params.common.C}'
             run_name+=f'_{participation}'
