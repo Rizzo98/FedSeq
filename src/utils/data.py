@@ -5,6 +5,7 @@ import random
 import logging
 import json
 import os
+from tqdm import tqdm
 from src.utils import non_iid_partition_with_dirichlet_distribution
 
 log = logging.getLogger(__name__)
@@ -114,7 +115,7 @@ def get_emnist_data(**kwargs):
     files = [f for f in files if f.endswith('.json')]
     train_data = []
     train_labels = []
-    for f in files:
+    for f in tqdm(files,desc='Loading trainig files'):
         training_dict = json.load(open(os.path.join(train_dir, f)))
         train_data += training_dict['x']
         train_labels += training_dict['y']
@@ -123,7 +124,7 @@ def get_emnist_data(**kwargs):
     files = [f for f in files if f.endswith('.json')]
     test_data = []
     test_labels = []
-    for f in files:
+    for f in tqdm(files,desc='Loading test files'):
         test_dict = json.load(open(os.path.join(test_dir, f)))
         test_data += test_dict['x']
         test_labels += test_dict['y']
@@ -142,8 +143,8 @@ def emnist_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
         dataset_class = kwargs['dataset_class']
         local_datasets = []
         for i,(x,y) in enumerate(zip(train_x,train_y)):
-            local_datasets.append(dataset_class(x,y,client_id=i))
-        test_dataset = dataset_class(test_x, test_y)
+            local_datasets.append(dataset_class(x,y,kwargs['dataset_num_class'],client_id=i))
+        test_dataset = dataset_class(test_x, test_y,kwargs['dataset_num_class'])
         return local_datasets, test_dataset
 
 def create_datasets(dataset, num_clients, alpha):
