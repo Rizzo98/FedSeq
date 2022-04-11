@@ -102,10 +102,6 @@ def shakespeare_transform(centralized, train_x, train_y, test_x, test_y, **kwarg
         return local_datasets, test_dataset
 
 def get_emnist_data(**kwargs): 
-    '''
-    li organizziamo in datasets/EMNIST/train/EMNIST_niid/file da 0 a 34 idem EMNIST_iid e il test 
-    in datasets/EMNIST/test/file da 0 a 34
-    '''
     datasets_path = os.path.join(os.getcwd(),'datasets','EMNIST')
     if kwargs['dataset_name']=='emnist_niid':
         train_dir = os.path.join(datasets_path, 'train', 'EMNIST_niid')
@@ -115,7 +111,7 @@ def get_emnist_data(**kwargs):
     files = [f for f in files if f.endswith('.json')]
     train_data = []
     train_labels = []
-    for f in tqdm(files,desc='Loading trainig files'):
+    for f in tqdm(files,desc='Loading training files'):
         training_dict = json.load(open(os.path.join(train_dir, f)))
         train_data += training_dict['x']
         train_labels += training_dict['y']
