@@ -21,8 +21,7 @@ def main(cfg: DictConfig):
     seed_everything(cfg.seed)
     log.info("\n" + OmegaConf.to_yaml(cfg))
     
-    writer = WanDBSummaryWriter(cfg.dataset.name, cfg.algo,\
-        entity=cfg.wandb.entity, device=cfg.device)
+    writer = WanDBSummaryWriter(cfg)
     writer.set_config(dict(cfg))
     
     model: Algo = create_model(cfg, writer)

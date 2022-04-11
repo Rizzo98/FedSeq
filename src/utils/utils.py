@@ -89,25 +89,40 @@ class CustomSummaryWriter(SummaryWriter):
 
 
 class WanDBSummaryWriter:
-    def __init__(self, dataset_name, algo, entity="fedseq-thesis", device=None) -> None:
-        project_name, run_name = self._generate_project_run_name(dataset_name, algo, device)
-        wandb.init(project=project_name, entity=entity, config ={})
+    def __init__(self, config) -> None:
+        project_name, run_name = self._generate_project_run_name(config)
+        wandb.init(project=project_name, entity=config.wandb.entity, config ={})
         wandb.run.name = run_name
         self.local_store = dict()
     
-    def _generate_project_run_name(self, dataset_name, algo, device=None):
+    def _generate_project_run_name(self, config):
         project_name = ""
         iid_ness = ""
-        if "_" in dataset_name:
-            project_name = dataset_name.split('_')[0]
-            if algo.type!='centralized':
-                iid_ness = f'_split:{dataset_name.split("_")[1]}'
+        if "_" in config.dataset.name:
+            project_name = config.dataset.name.split('_')[0]
+            if config.algo.type!='centralized':
+                iid_ness = f'split:{(config.dataset.name.split("_")[1]).upper()}'
         else:
-            project_name = dataset_name
-            if 'common' in algo.params:
-                iid_ness = f'_alpha:{algo.params.common.alpha}'
-        run_name = f'{algo.type}{iid_ness}'
-        if device=='cpu':
+            project_name = config.dataset.name
+            if 'common' in config.algo.params:
+                iid_ness = f'alpha:{config.algo.params.common.alpha}'
+        n_rounds = f'rounds:{config.n_round}'
+        run_name = f'{config.algo.type}_{iid_ness}_{n_rounds}'
+        if config.algo.type!='centralized':
+            participation = f'C:{config.algo.params.common.C}'
+            run_name+=f'_{participation}'
+            if config.algo.type!='fedavg':
+                cluster = f'cluster:{(config.algo.params.clustering.classname).replace("ClusterMaker", "")}'
+                run_name+=f'_{cluster}'
+                if config.algo.params.clustering.classname != 'RandomClusterMaker':
+                    extract = f'extract:{config.algo.params.evaluator.extract}'
+                    run_name+=f'_{extract}'
+                    if config.algo.params.clustering.classname != 'KMeansClusterMaker':
+                        measure = f'measure:{config.algo.params.clustering.measure}'
+                        run_name+=f'_{measure}'
+                max_clients = f'maxClients:{config.algo.params.clustering.max_clients}'
+                run_name+=f'_{max_clients}'
+        if config.device=='cpu':
             project_name = 'test-project'
         return project_name, run_name
 
