@@ -75,9 +75,10 @@ class FedBase(Algo):
             f"[Round: {self._round: 05}] Test set: Average loss: {test_loss:.4f}, Accuracy: {accuracy:.2f}%"
         )
         if self.writer is not None:
-            if self._round%self.wandbConf.centralized.tot_round==0:
-                name = "model" if self.wandbConf.centralized.policy=='last' else f'model_r{self._round}'
-                self.writer.save_model(self.center_server.model, name=name)
+            self.writer.save_model(self.center_server.model, 'last_model', self._round)
+            if self.wandbConf.server_model.save_every_n_rounds:
+                if self._round%self.wandbConf.server_model.tot_round==0:
+                    self.writer.save_model(self.center_server.model, f'model_r{self._round}', self._round)
             self.writer.add_scalar("val/loss", test_loss, self._round)
             self.writer.add_scalar("val/accuracy", accuracy, self._round)
             self.writer.add_scalar("val/time_elapsed", now, self._round)
@@ -99,13 +100,16 @@ class FedBase(Algo):
 
     def fit(self, num_round: int):
         self.num_round = num_round
-        if self.wandbConf.client_datasets:
-            bins = [list(np.bincount(c.labels, minlength=self.dataset.dataset_num_class)) for c in self.local_datasets]
-            self.writer.add_table(bins,[f'Class {j}' for j in range(len(bins[0]))],'Clients distribution')
+        if self._round==0:
+            if self.wandbConf.client_datasets:
+                bins = [list(np.bincount(c.labels, minlength=self.dataset.dataset_num_class)) for c in self.local_datasets]
+                self.writer.add_table(bins,[f'Class {j}' for j in range(len(bins[0]))],'Clients distribution')
+            self.validation_step()
+
         self.save_clients_model()
         if self.completed:
             self.reset_result()
-        self.validation_step()
+        
         try:
             for t in range(self._round, num_round):
                 self.train_step()
@@ -132,17 +136,11 @@ class FedBase(Algo):
 
     def load_from_checkpoint(self):
         try:
-            with open(self.checkpoint_path, "rb") as f:
-                checkpoint_data = pickle.load(f)
-                assert all(key in checkpoint_data for key in self.result.keys()), "Missing data in checkpoint"
-                assert "model" in checkpoint_data and "round" in checkpoint_data \
-                       and isinstance(checkpoint_data["model"], Model), "Missing model"
-                assert checkpoint_data["model"].same_setup(self.center_server.model)
-                log.info(f'Reloading checkpoint from round {checkpoint_data["round"]}')
-                for k in self.result.keys():
-                    self.result[k] = checkpoint_data[k]
-                self.center_server.model = checkpoint_data["model"]
-                self._round = checkpoint_data["round"]
+            log.info(f'Reloading checkpoint from round {self.writer.restore_run["resume_round"]}')
+            model_weight = self.writer.restore_run["model_weight"]
+            model_weight = {'.'.join(k.split('.')[1:]): v for k,v in model_weight.items()}
+            self.center_server.model.model.load_state_dict(model_weight)
+            self._round = self.writer.restore_run["resume_round"]+1
         except BaseException as err:
             log.warning(f"Unable to load from checkpoint, starting from scratch: {err}")
 

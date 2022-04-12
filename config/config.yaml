@@ -1,16 +1,15 @@
 defaults:
   - model: shakespeare
-  - algo: fedseq
+  - algo: fedavg
   - dataset: shakespeare_niid
   - _self_
 
-n_round: 250
-device: 'cuda:0'
+n_round: 100
+device: 'cpu'
 
 seed: 2021
 output_suffix: ""
 do_train: True
-reload_checkpoint: False
 test_on_data: 
   dataset: null
   model: fedseq-thesis/test-project/y5j6jsug/models/model_r6.pt
@@ -20,9 +19,10 @@ root: ${oc.env:PWD}
 savedir: ${oc.env:PWD}/output/${algo.type}/${now:%Y-%m-%d_%H-%M-%S}
 
 wandb:
+  restart_from_run: "152j482t" #run_id/null
   entity: "fedseq-thesis"
-  centralized:
-    policy: "last" # last vs all
+  server_model:
+    save_every_n_rounds: True
     tot_round: 2
   client_datasets: true # true/false
   superclient_datasets: true #true/false

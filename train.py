@@ -11,7 +11,7 @@ def create_model(cfg: DictConfig, writer) -> Algo:
                                             dataset=cfg.dataset, params=cfg.algo.params,
                                             savedir=cfg.savedir, output_suffix=cfg.output_suffix,
                                             wandbConf = cfg.wandb)
-    if cfg.reload_checkpoint:
+    if cfg.wandb.restart_from_run is not None:
         method.load_from_checkpoint()
     return method
 

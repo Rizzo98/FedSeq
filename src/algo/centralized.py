@@ -45,18 +45,21 @@ class Centralized(Algo):
         self.scheduler = None
         self.optim = None
 
-    def fit(self, epochs):
+    def fit(self, epochs: int):
         self.epochs = epochs
         self.model.to(self.device)
         self.loss_fn.to(self.device)
         self.model.train()
         self.optim = self.optimizer(self.model.parameters(), **self.optimizer_args)
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, epochs)
-        self._round = 0
-        self.validation_step()
+        if self._round==0:
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, epochs)
+            self.validation_step()
+        else:
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optim, epochs, last_epoch=self._round)
 
         try:
-            for i in range(epochs):
+            for i in range(self._round, epochs):
                 self._round = i + 1
                 self.train_step()
                 self.validation_step()
@@ -104,18 +107,10 @@ class Centralized(Algo):
 
     def load_from_checkpoint(self):
         try:
-            with open(self.checkpoint_path, "rb") as f:
-                checkpoint_data = pickle.load(f)
-                assert all(key in checkpoint_data for key in self.result.keys()), "Missing data in checkpoint"
-                assert "model" in checkpoint_data and "round" in checkpoint_data \
-                       and isinstance(checkpoint_data["model"], Model), "Missing model"
-                assert checkpoint_data["model"].same_setup(self.model)
-                log.info(f'Reloading checkpoint from round {checkpoint_data["round"]}')
-                for k in self.result.keys():
-                    self.result[k] = checkpoint_data[k]
-                self.model = checkpoint_data["model"]
-                self._round = checkpoint_data["round"]
+            log.info(f'Reloading checkpoint from round {self.writer.restore_run["resume_round"]}')
+            model_weight = self.writer.restore_run["model_weight"]
+            model_weight = {'.'.join(k.split('.')[1:]): v for k,v in model_weight.items()}
+            self.model.model.load_state_dict(model_weight)
+            self._round = self.writer.restore_run["resume_round"]+1
         except BaseException as err:
             log.warning(f"Unable to load from checkpoint, starting from scratch: {err}")
-
-

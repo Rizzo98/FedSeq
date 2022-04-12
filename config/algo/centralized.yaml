@@ -8,4 +8,4 @@ algo:
   type: centralized
   classname: Centralized
   params:
-    batch_size: 100
+    batch_size: 20
