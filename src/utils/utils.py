@@ -5,6 +5,7 @@ from functools import wraps
 import logging
 import os
 import random
+import json
 from re import A
 from runpy import run_module
 import signal, sys
@@ -91,10 +92,19 @@ class CustomSummaryWriter(SummaryWriter):
 class WanDBSummaryWriter:
     def __init__(self, config) -> None:
         project_name, run_name = self._generate_project_run_name(config)
-        wandb.init(project=project_name, entity=config.wandb.entity, config ={})
-        wandb.run.name = run_name
-        self.local_store = dict()
-    
+        if config.wandb.restart_from_run is None:
+            wandb.init(project=project_name, entity=config.wandb.entity, config ={})
+            wandb.run.name = run_name
+            self.local_store = dict()
+        else:
+            wandb.init(id=config.wandb.restart_from_run,resume='allow')
+            run_path = config.wandb.entity+'/'+project_name+'/'+config.wandb.restart_from_run
+            model = torch.load(wandb.restore('models/last_model.pt', run_path=run_path).name)
+            self.restore_run = dict()
+            self.restore_run['model_weight'] = model['weight']
+            self.restore_run['resume_round'] = model['round']
+            self.local_store = json.load(wandb.restore('objects/local_store.json', run_path=run_path))
+        
     def _generate_project_run_name(self, config):
         project_name = ""
         iid_ness = ""
@@ -129,7 +139,7 @@ class WanDBSummaryWriter:
     def set_config(self, config) -> None:
         final_list = []
         self._return_tuple_list(config,final_list)
-        wandb.config.update(dict(final_list))
+        wandb.config.update(dict(final_list),allow_val_change=True)
 
     def _return_tuple_list(self, d: dict, final_list:list, parent_name=""):
         for k,v in d.items():
@@ -139,11 +149,17 @@ class WanDBSummaryWriter:
             else:
                 v_ = ('.'.join([parent_name,k]) if parent_name!="" else k, v)
                 final_list.append(v_)
+    
+    def save_object(self, object, fileName) -> None:
+        if not os.path.isdir(os.path.join(wandb.run.dir, 'objects')):
+            os.mkdir(os.path.join(wandb.run.dir, 'objects'))
+        json.dump(object,open(os.path.join(wandb.run.dir, "objects" ,f"{fileName}.json"),'w'))
 
-    def save_model(self, model, name='model') -> None:
+    def save_model(self, model, name, round) -> None:
         if not os.path.isdir(os.path.join(wandb.run.dir, 'models')):
             os.mkdir(os.path.join(wandb.run.dir, 'models'))
-        torch.save(model.state_dict(), os.path.join(wandb.run.dir, "models" ,f"{name}.pt"))
+        torch.save({'weight':model.state_dict(),'round':round},\
+            os.path.join(wandb.run.dir, "models" ,f"{name}.pt"))
 
     def add_scalar(self, tag, value, global_step=None) -> None:
         if global_step is None:
@@ -158,10 +174,13 @@ class WanDBSummaryWriter:
         self.add_scalar(title,wandb.Table(data=data, columns=columns),0)
 
     def add_local_var(self, name, value):
+        if isinstance(value, torch.Tensor):
+            value = value.item()
         if name in self.local_store.keys():
                 self.local_store[name]+=value
         else:
             self.local_store[name]=value
+        self.save_object(self.local_store,'local_store')
 
 
 def exit_on_signal(sig, ret_code=0):
