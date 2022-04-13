@@ -310,6 +310,8 @@ def main():
                                   ),
     ]
     
+    SHAKESPEARE EXPERIMENTS
+
     experiments = [
         FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy classifierLast C:0.1",
                                   "",
@@ -453,7 +455,24 @@ def main():
                                   runner_options={"--time": "00:50:00"}
                                   )
     ]
-    """
+
+    EMNIST experiments 
+
+    experiments = [
+        FedExperiment.from_params("Centralized - runs comparison femnist - different lrs, weight decays",
+                                  "",
+                                  Param("algo", "centralized"),
+                                  Param("device", "cuda:0"),
+                                  Param("n_round", 100),
+                                  MultiParam.key("algo.params.optim.args.lr", [5e-2, 1e-2, 5e-3, 1e-3]),
+                                  MultiParam.key("algo.params.optim.args.weight_decay", [0, 1e-4]),
+                                  Param("dataset", "emnist_niid"),
+                                  Param("model", "emnist"),
+                                  runner_options={"--time": "05:30:00"}
+                                  )
+
+    ]
+    
     experiments = [
         FedExperiment.from_params("FedAvg - runs EMNIST - C 0.1",
                             "",
@@ -463,9 +482,9 @@ def main():
                             Param("algo.params.optim.args.lr",0.01),
                             Param("algo.params.optim.args.weight_decay",0),
                             Param("n_round", 1500),
-                            Param("dataset", "emnist_iid"),
+                            Param("dataset", "emnist_niid"),
                             Param("algo.params.common.C", 0.1),
-                            runner_options={"--time": "13:00:00"}
+                            runner_options={"--time": "9:00:00"}
                             ),
         FedExperiment.from_params("FedAvg - runs EMNIST - C 0.2",
                             "",
@@ -475,11 +494,162 @@ def main():
                             Param("algo.params.optim.args.lr",0.01),
                             Param("algo.params.optim.args.weight_decay",0),
                             Param("n_round", 1500),
-                            Param("dataset", "emnist_iid"),
+                            Param("dataset", "emnist_niid"),
                             Param("algo.params.common.C", 0.2),
-                            runner_options={"--time": "15:00:00"}
+                            runner_options={"--time": "11:00:00"}
                             )
     ]
+    """
+    experiments = [
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - Greedy classifierLast C:0.1",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                Param("algo.params.evaluator.extract", "classifierLast"),
+                                Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                MultiParam.key("algo.params.clustering.measure",
+                                        ["cosine", "wasserstein"]),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.1),
+                                MultiParam.dict("algo.params.clustering",
+                                                  {"min_examples": [1030, 2060, 4120],
+                                                   "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "09:00:00"}
+                                ),
+
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - Greedy classifierLast C:0.2",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                Param("algo.params.evaluator.extract", "classifierLast"),
+                                Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                MultiParam.key("algo.params.clustering.measure",
+                                    ["cosine", "wasserstein"]),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.2),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "11:00:00"}
+                                ),
+
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - KMeans C:0.1",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                MultiParam.key("algo.params.evaluator.extract", ["classifierLast","confidence"]),
+                                Param("algo.params.clustering.classname","KMeansClusterMaker"),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.1),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "09:00:00"}
+                                ),
+        
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - KMeans C:0.2",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                MultiParam.key("algo.params.evaluator.extract", ["classifierLast","confidence"]),
+                                Param("algo.params.clustering.classname","KMeansClusterMaker"),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.2),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "11:00:00"}
+                                ),
+
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - Greedy confidence C:0.1",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                Param("algo.params.evaluator.extract", "confidence"),
+                                Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                MultiParam.key("algo.params.clustering.measure",
+                                        ["gini", "kullback"]),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.1),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "09:00:00"}
+                                ),
+        
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - Greedy confidence C:0.2",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                Param("algo.params.evaluator.extract", "confidence"),
+                                Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                MultiParam.key("algo.params.clustering.measure",
+                                        ["gini", "kullback"]),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.2),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "11:00:00"}
+                                ),
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - Random C 0.1",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                Param("algo.params.clustering.classname","RandomClusterMaker"),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.1),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "09:00:00"}
+                                ),
+        FedExperiment.from_params("FedSeq - runs comparison EMNIST - Random C 0.2",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("model","emnist"),
+                                Param("algo.params.optim.args.lr",0.01),
+                                Param("algo.params.optim.args.weight_decay",0),
+                                Param("algo.params.clustering.classname","RandomClusterMaker"),
+                                Param("dataset", "emnist_niid"),
+                                Param("algo.params.common.C", 0.2),
+                                MultiParam.dict("algo.params.clustering",
+                                                {"min_examples": [1030, 2060, 4120],
+                                                "max_clients": [6, 11, 21]}),
+                                runner_options={"--time": "11:00:00"}
+                                ),
+    ]
+
     r: Runner = SlurmRunner(experiment_config.get("seed"), 0.11, train_time_overshoot=0.04,
                             default_params=train_defaults, defaults={"--mem": "34GB"})
     for e in experiments:

@@ -22,7 +22,7 @@ wandb:
   restart_from_run: null #run_id/null
   entity: "fedseq-thesis"
   server_model:
-    save_every_n_rounds: True
+    save_every_n_rounds: False
     tot_round: 2
   client_datasets: true # true/false
   superclient_datasets: true #true/false

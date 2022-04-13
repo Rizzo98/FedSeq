@@ -3,7 +3,7 @@ dataset_class: EmnistLocalDataset
 dataset_num_class: 62
 dataset_size: 719922 #test size:81722
 num_exemplar: 817
-average_accuracy_rounds: 10
+average_accuracy_rounds: 100
 accuracy_centralized: 87.9 
 percentages_saved: [0.7, 0.8, 0.9]
 params:
