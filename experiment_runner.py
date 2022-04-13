@@ -309,7 +309,7 @@ def main():
                                   runner_options={"--time": "00:30:00"}
                                   ),
     ]
-    """
+    
     experiments = [
         FedExperiment.from_params("FedSeq - runs comparison shakespeare - Greedy classifierLast C:0.1",
                                   "",
@@ -438,7 +438,7 @@ def main():
                                   "",
                                   Param("algo", "fedavg"),
                                   Param("device", "cuda:0"),
-                                  Param("n_round", 250),
+                                  Param("n_round", 1500),
                                   Param("dataset", "shakespeare_iid"),
                                   Param("algo.params.common.C", 0.1),
                                   runner_options={"--time": "00:35:00"}
@@ -452,10 +452,36 @@ def main():
                                   Param("algo.params.common.C", 0.2),
                                   runner_options={"--time": "00:50:00"}
                                   )
-
+    ]
+    """
+    experiments = [
+        FedExperiment.from_params("FedAvg - runs EMNIST - C 0.1",
+                            "",
+                            Param("algo", "fedavg"),
+                            Param("device", "cuda:0"),
+                            Param("model","emnist"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",0),
+                            Param("n_round", 1500),
+                            Param("dataset", "emnist_iid"),
+                            Param("algo.params.common.C", 0.1),
+                            runner_options={"--time": "13:00:00"}
+                            ),
+        FedExperiment.from_params("FedAvg - runs EMNIST - C 0.2",
+                            "",
+                            Param("algo", "fedavg"),
+                            Param("device", "cuda:0"),
+                            Param("model","emnist"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",0),
+                            Param("n_round", 1500),
+                            Param("dataset", "emnist_iid"),
+                            Param("algo.params.common.C", 0.2),
+                            runner_options={"--time": "15:00:00"}
+                            )
     ]
     r: Runner = SlurmRunner(experiment_config.get("seed"), 0.11, train_time_overshoot=0.04,
-                            default_params=train_defaults, defaults={"--mem": "4GB"})
+                            default_params=train_defaults, defaults={"--mem": "34GB"})
     for e in experiments:
         print(e)
         e.run('train.py', r)

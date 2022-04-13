@@ -105,8 +105,8 @@ def get_emnist_data(**kwargs):
     datasets_path = os.path.join(os.getcwd(),'datasets','EMNIST')
     if kwargs['dataset_name']=='emnist_niid':
         train_dir = os.path.join(datasets_path, 'train', 'EMNIST_niid')
-    elif kwargs['dataset_name']=='emnist_niid':
-        train_dir = os.path.join(datasets_path, 'train', 'EMNIST_niid')
+    elif kwargs['dataset_name']=='emnist_iid':
+        train_dir = os.path.join(datasets_path, 'train', 'EMNIST_iid')
     files = os.listdir(train_dir)
     files = [f for f in files if f.endswith('.json')]
     train_data = []

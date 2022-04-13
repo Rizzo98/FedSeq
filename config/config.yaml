@@ -1,7 +1,7 @@
 defaults:
-  - model: shakespeare
+  - model: emnist
   - algo: fedavg
-  - dataset: shakespeare_niid
+  - dataset: emnist_iid
   - _self_
 
 n_round: 100
@@ -19,7 +19,7 @@ root: ${oc.env:PWD}
 savedir: ${oc.env:PWD}/output/${algo.type}/${now:%Y-%m-%d_%H-%M-%S}
 
 wandb:
-  restart_from_run: "152j482t" #run_id/null
+  restart_from_run: null #run_id/null
   entity: "fedseq-thesis"
   server_model:
     save_every_n_rounds: True

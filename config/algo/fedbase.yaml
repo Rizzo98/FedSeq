@@ -5,9 +5,9 @@ algo:
   params:
     common:
       E: 1
-      K: 100
+      K: 3500
       C: 0.1
-      B: 100
+      B: 20
       alpha: 0
       max_iter_dirichlet: 100
       rebalance: False
