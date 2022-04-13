@@ -93,17 +93,19 @@ class WanDBSummaryWriter:
     def __init__(self, config) -> None:
         project_name, run_name = self._generate_project_run_name(config)
         if config.wandb.restart_from_run is None:
-            wandb.init(project=project_name, entity=config.wandb.entity, config ={})
+            run_id = wandb.util.generate_id()
+            wandb.init(id=run_id, project=project_name, entity=config.wandb.entity, config ={})
             wandb.run.name = run_name
             self.local_store = dict()
         else:
-            wandb.init(id=config.wandb.restart_from_run,resume='allow')
+            wandb.init(project=project_name, entity=config.wandb.entity, id=config.wandb.restart_from_run,resume='must')
             run_path = config.wandb.entity+'/'+project_name+'/'+config.wandb.restart_from_run
             model = torch.load(wandb.restore('models/last_model.pt', run_path=run_path).name)
             self.restore_run = dict()
             self.restore_run['model_weight'] = model['weight']
             self.restore_run['resume_round'] = model['round']
-            self.local_store = json.load(wandb.restore('objects/local_store.json', run_path=run_path))
+            if config.algo.type != 'centralized':
+                self.local_store = json.load(wandb.restore('objects/local_store.json', run_path=run_path))
         
     def _generate_project_run_name(self, config):
         project_name = ""
@@ -180,7 +182,6 @@ class WanDBSummaryWriter:
                 self.local_store[name]+=value
         else:
             self.local_store[name]=value
-        self.save_object(self.local_store,'local_store')
 
 
 def exit_on_signal(sig, ret_code=0):

@@ -87,9 +87,10 @@ class Centralized(Algo):
             f"[Epochs: {self._round: 04}] Test set: Average loss: {test_loss:.4f}, Accuracy: {accuracy:.2f}%"
         )
         if self.writer is not None:
-            if self._round%self.wandbConf.centralized.tot_round==0:
-                name = "model" if self.wandbConf.centralized.policy=='last' else f'model_r{self._round}'
-                self.writer.save_model(self.model, name=name)
+            self.writer.save_model(self.model, 'last_model', self._round)
+            if self.wandbConf.server_model.save_every_n_rounds:
+                if self._round%self.wandbConf.server_model.tot_round==0:
+                    self.writer.save_model(self.model, f'model_r{self._round}', self._round)
             if self.epochs-self._round<self.dataset.average_accuracy_rounds:
                 self.writer.add_local_var('Avg_acc',accuracy)
             self.writer.add_scalar("val/loss", test_loss, self._round)
@@ -111,6 +112,6 @@ class Centralized(Algo):
             model_weight = self.writer.restore_run["model_weight"]
             model_weight = {'.'.join(k.split('.')[1:]): v for k,v in model_weight.items()}
             self.model.model.load_state_dict(model_weight)
-            self._round = self.writer.restore_run["resume_round"]+1
+            self._round = self.writer.restore_run["resume_round"]
         except BaseException as err:
             log.warning(f"Unable to load from checkpoint, starting from scratch: {err}")

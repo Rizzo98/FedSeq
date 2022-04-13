@@ -88,7 +88,8 @@ class FedBase(Algo):
                     self.writer.add_local_var('Last_rounds_accuracies', [-1]*self.epochs_avg_accuracy)
                     self.writer.add_local_var('index_passed_percentage', 0)
             if self.accuracy_centralized != None and self.writer.local_store['index_passed_percentage'] < len(self.percentages_saved):
-                self.writer.local_store['Last_rounds_accuracies'][self._round % self.epochs_avg_accuracy] = accuracy
+                self.writer.local_store['Last_rounds_accuracies'][self._round % self.epochs_avg_accuracy] = accuracy.item()
+                self.writer.save_object(self.writer.local_store, 'local_store')
                 last_rounds_avg = np.average(list(filter(lambda x: x!=-1, self.writer.local_store['Last_rounds_accuracies'])))
                 if last_rounds_avg > self.percentages_saved[self.writer.local_store['index_passed_percentage']]*self.accuracy_centralized:
                     self.writer.add_summary_value(f"round_over_{self.percentages_saved[self.writer.local_store['index_passed_percentage']]}_acc", self._round)   
@@ -100,7 +101,7 @@ class FedBase(Algo):
 
     def fit(self, num_round: int):
         self.num_round = num_round
-        if self._round==0:
+        if self.wandbConf.restart_from_run is None:
             if self.wandbConf.client_datasets:
                 bins = [list(np.bincount(c.labels, minlength=self.dataset.dataset_num_class)) for c in self.local_datasets]
                 self.writer.add_table(bins,[f'Class {j}' for j in range(len(bins[0]))],'Clients distribution')
@@ -140,7 +141,7 @@ class FedBase(Algo):
             model_weight = self.writer.restore_run["model_weight"]
             model_weight = {'.'.join(k.split('.')[1:]): v for k,v in model_weight.items()}
             self.center_server.model.model.load_state_dict(model_weight)
-            self._round = self.writer.restore_run["resume_round"]+1
+            self._round = self.writer.restore_run["resume_round"]
         except BaseException as err:
             log.warning(f"Unable to load from checkpoint, starting from scratch: {err}")
 

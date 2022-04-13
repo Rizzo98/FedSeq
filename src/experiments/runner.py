@@ -114,7 +114,7 @@ def sbatch(script_path: str):
 
 
 class SlurmRunner(Runner):
-    datasets_dim = {"cifar10": 50000, "cifar100": 50000, "shakespeare": 200000}
+    datasets_dim = {"cifar10": 50000, "cifar100": 50000, "shakespeare": 200000, "emnist": 719922}
     five_days_seconds = 432000
 
     def __init__(self, seed: int, batch_train_time: float, default_params: DictConfig, train_time_overshoot: float = 0,
@@ -131,7 +131,7 @@ class SlurmRunner(Runner):
             self.__scripts_dir = os.path.join(os.getcwd(), "output", f"slurmScripts{datetime.now()}")
         os.makedirs(self.__scripts_dir, exist_ok=True)
         self.default_options = {"--gres": "gpu:1", "--cpus-per-task": "1", "--partition": "cuda",\
-            "--mail-user": "andrea.rizzardi@studenti.polito.it", "--mail-type":"ALL"}
+            "--mail-user": "andrea.silvi@studenti.polito.it", "--mail-type":"ALL"}
         self.default_options.update(defaults)
 
     def calculate_run_time(self, model: FedModel) -> Tuple[int, int, int, int]:
