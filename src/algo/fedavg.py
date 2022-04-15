@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from tqdm import tqdm
 from src.algo.fedbase import FedBase
 from src.utils import select_random_subset
 
@@ -21,7 +22,7 @@ class FedAvg(FedBase):
         sample_set = self.dropping(np.random.choice(range(self.num_clients), n_sample, replace=False))
         self.selected_clients = [self.clients[k] for k in iter(sample_set)]
         self.send_data(self.selected_clients)
-
-        for c in self.selected_clients:
+        
+        for c in tqdm(self.selected_clients, desc=f'Training of selected clients @ round {self._round}'):
             c.client_update(self.optimizer, self.optimizer_args,
                             self.local_epoch, self.loss_fn)

@@ -1,6 +1,7 @@
 import numpy as np
 from src.algo import FedSeq
 import logging
+from tqdm import tqdm
 
 log = logging.getLogger(__name__)
 
@@ -31,8 +32,8 @@ class FedSeqInter(FedSeq):
 
         sample_set = np.random.choice(range(self.num_superclients), self.num_clients_train_step, replace=False)
         self.selected_clients = [self.superclients[k] for k in iter(sample_set)]
-
-        for k in range(self.num_clients_train_step):
+        
+        for k in tqdm(range(self.num_clients_train_step), desc=f'Training of selected superclients @ round {self._round}'):
             # send past round models
             self.selected_clients[k].model = self.models_bank[k]
             # training

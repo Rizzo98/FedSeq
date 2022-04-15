@@ -1,5 +1,7 @@
 import logging
 from typing import List, Dict
+
+from tqdm import tqdm
 from src.optim import *
 from src.algo.fedseq_modules import *
 from src.models import Model
@@ -137,7 +139,7 @@ class FedSeq(FedBase):
         self.selected_clients = [self.superclients[k] for k in iter(sample_set)]
         self.send_data(self.selected_clients)
 
-        for c in self.selected_clients:
+        for c in tqdm(self.selected_clients, desc=f'Training of selected superclients @ round {self._round}'):
             c.client_update(self.optimizer, self.optimizer_args, self.training.sequential_rounds, self.loss_fn)
 
         if self.training.check_forgetting:

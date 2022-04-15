@@ -67,13 +67,12 @@ class Algo(ABC):
     def train(model: nn.Module, device: str, optimizer: nn.Module, loss_fn: nn.Module, data: DataLoader) -> None:
         model.train()
         #data.dataset.generate_mapping(4,0,1)
-        for img, target in tqdm(data, desc='Training'):
+        for img, target in data:
             img = img.to(device)
             target = target.to(device)
             optimizer.zero_grad()
             logits = model(img)
             loss = loss_fn(logits, target)
-
             loss.backward()
             optimizer.step()
 

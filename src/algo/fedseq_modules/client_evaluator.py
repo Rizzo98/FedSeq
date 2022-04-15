@@ -6,6 +6,7 @@ import copy
 from sklearn.decomposition import PCA
 from src.algo.fed_clients.base_client import Client
 import logging
+from tqdm import tqdm
 
 log = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class ClientEvaluator:
     def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class) -> Dict[str, ClientEvaluation]:
         evaluations = {}
         representers = {e: list() for e in self.extract}
-        for client in clients:
+        for client in tqdm(clients, desc='Pretraining of clients'):
             self.__client_pre_train(client, optimizer, optimizer_args, loss_class)
             for to_extract in self.extract:
                 client_representer = self.__get_representer(client, to_extract)
