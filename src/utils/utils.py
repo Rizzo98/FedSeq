@@ -123,7 +123,7 @@ class WanDBSummaryWriter:
         if config.algo.type!='centralized':
             participation = f'C:{config.algo.params.common.C}'
             run_name+=f'_{participation}'
-            if config.algo.type!='fedavg':
+            if 'clustering' in config.algo.params:
                 cluster = f'cluster:{(config.algo.params.clustering.classname).replace("ClusterMaker", "")}'
                 run_name+=f'_{cluster}'
                 if config.algo.params.clustering.classname != 'RandomClusterMaker':

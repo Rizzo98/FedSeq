@@ -48,7 +48,7 @@ class FedSeqInter(FedSeq):
                 round_fg_stats[self.superclients[k].client_id] = self.superclients[k].forgetting_stats
             self.result["forgetting_stats"].append(round_fg_stats)
 
-    def aggregate(self):
+    def aggregate(self, clients):
         total_weight = np.sum(self.models_num_examples)
         weights = [w / total_weight for w in self.models_num_examples]
-        self.center_server.aggregation(self.selected_clients, weights)
+        self.center_server.aggregation(clients, weights)
