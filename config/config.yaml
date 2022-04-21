@@ -1,6 +1,6 @@
 defaults:
   - model: emnist
-  - algo: fedavg
+  - algo: fedseq
   - dataset: emnist_niid
   - _self_
 
@@ -20,6 +20,7 @@ savedir: ${oc.env:PWD}/output/${algo.type}/${now:%Y-%m-%d_%H-%M-%S}
 
 wandb:
   restart_from_run: null #run_id/null
+  run_suffix: null #null/n.times this run is being repeated
   entity: "fedseq-thesis"
   tags: ["federated comparison"]
   server_model:

@@ -136,6 +136,8 @@ class WanDBSummaryWriter:
                 run_name+=f'_{max_clients}'
         if config.device=='cpu':
             project_name = 'test-project'
+        if config.wandb.run_suffix is not None:
+            run_name+=f'_repetition:{config.wandb.run_suffix}'
         return project_name, run_name
 
     def set_config(self, config) -> None:
