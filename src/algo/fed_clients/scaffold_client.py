@@ -53,6 +53,7 @@ class SCAFFOLDClient(Client):
         # get new controls option 1 of scaffold algorithm
         batches = 0
         op = optimizer(server_model.parameters(), **optimizer_args)
+        server_model.train()
         for _ in range(local_epoch):
             for img, target in self.dataloader:
                 img = img.to(self.device)
