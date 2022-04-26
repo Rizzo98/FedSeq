@@ -9,16 +9,18 @@ algo:
   classname: FedSeq
   params:
     clustering:
+      precomputed: null #path to superclients or null
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
       disomogeneity_measures: ["gini", "kullback"] #measures that apply only to probability distributions
-      classname: RandomClusterMaker
+      classname: GreedyClusterMaker
       max_clients: 5
-      min_examples: 8000
+      min_examples: 400
       measure: cosine
       save_statistics: False
       verbose: False
     evaluator:
+      precomputed: null #path to representers or null
       extract_eval : []
       epochs: 10
       extract: "classifierLast" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
@@ -32,5 +34,7 @@ algo:
       shuffle_sp_clients: True
       clients_dropout: ${algo.params.clients_dropout}
     save_models: False
+    save_representers: False
+    save_superclients: False
     common:
       dp: #differential privacy
