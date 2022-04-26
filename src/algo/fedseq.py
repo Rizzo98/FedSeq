@@ -1,10 +1,11 @@
 import logging
+import pickle
 from typing import List, Dict
-
 from tqdm import tqdm
 from src.optim import *
 from src.algo.fedseq_modules import *
 from src.models import Model
+from src.utils import savepickle
 import numpy as np
 from torch.nn import CrossEntropyLoss
 from src.algo import FedBase
@@ -22,6 +23,8 @@ class FedSeq(FedBase):
         self.evaluator = params.evaluator
         self.training = params.training
         self.wandbConf = wandbConf
+        self.savedir = savedir
+        self.save_representers = params.save_representers
 
         # list incompatibilities between extract method and clustering measures
         self.extractions = {*self.evaluator.extract_eval, self.evaluator.extract}
@@ -37,19 +40,27 @@ class FedSeq(FedBase):
                        savedir=savedir) for m in
             {*self.clustering.classnames_eval, self.clustering.classname}}
 
-        # evaluate clients if needed
-        evaluations = self.evaluate_if_needed(clustering_methods)
-        if len(self.clustering.classnames_eval) > 0:
-            self.run_clustering_evaluation(clustering_methods, evaluations)
+        if params.clustering.precomputed == None:
+            if params.evaluator.precomputed == None:
+                evaluations = self.evaluate_if_needed(clustering_methods)
+            else:
+                evaluations = pickle.load(open(params.evaluator.precomputed,'rb'))
+                
+            if len(self.clustering.classnames_eval) > 0:
+                self.run_clustering_evaluation(clustering_methods, evaluations)
 
-        clients_representer = []
-        if self.evaluator.extract in evaluations:
-            clients_representer = evaluations[self.evaluator.extract].representers
+            clients_representer = []
+            if self.evaluator.extract in evaluations:
+                clients_representer = evaluations[self.evaluator.extract].representers
 
-        # run the clustering methods for the training
-        self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,
-                                                                                   clients_representer,
-                                                                                  self.evaluator.extract)
+            self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,                                                                               clients_representer,
+                                                                              self.evaluator.extract)
+        else:
+            self.superclients: List[FedSeqSuperClient] = pickle.load(open(params.clustering.precomputed,'rb')) 
+        
+        if params.save_superclients:
+            savepickle(self.superclients,f'{savedir}/superclients.pkl')
+
         if self.wandbConf.superclient_datasets:
             superclients_distrib = [list(s.num_ex_per_class()) for s in self.superclients]
             self.writer.add_table(superclients_distrib,
@@ -85,6 +96,8 @@ class FedSeq(FedBase):
                                                self.evaluator.variance_explained, self.evaluator.epochs)
             optim_class, optim_args = eval(self.evaluator.optim.classname), self.evaluator.optim.args
             evaluations = client_evaluator.evaluate(self.clients, optim_class, optim_args, CrossEntropyLoss)
+        if self.save_representers:
+            savepickle(evaluations,f'{self.savedir}/representers.pkl')
         return evaluations
 
     def run_clustering_evaluation(self, clustering_methods, evaluations: Dict[str, ClientEvaluation]) -> None:
