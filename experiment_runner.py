@@ -1381,7 +1381,7 @@ def main():
     ]
 
     r: Runner = SlurmRunner(experiment_config.get("seed"), 0.11, train_time_overshoot=0.04,
-                            default_params=train_defaults)
+                            default_params=train_defaults, defaults={"--mem": "34GB"})
     for e in experiments:
         print(e)
         e.run('train.py', r)
