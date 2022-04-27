@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 class StackoverflowLocalDataset(Dataset):
-    def __init__(self, x, y, num_classes, device, client_id=-1) -> None:
+    def __init__(self, x, y, num_classes, device, client_id=-1, **kvargs) -> None:
         self.client_id = client_id
         self.x = np.array(x)
         self.labels = np.array(y)

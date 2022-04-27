@@ -27,8 +27,8 @@ class Centralized(Algo):
         dataset_num_classes= dataset.dataset_num_class
         train_img, train_label, test_img, test_label = dataset_getter(dataset_name=dataset.name, device=self.device)
         train_img, train_label, test_img, test_label = transform(True, train_img, train_label, test_img, test_label)
-        training_set = dataset_class(train_img, train_label, dataset_num_classes)
-        test_set = dataset_class(test_img, test_label, dataset_num_classes, train=False)
+        training_set = dataset_class(train_img, train_label, dataset_num_classes, device)
+        test_set = dataset_class(test_img, test_label, dataset_num_classes, device, train=False)
 
         self.model = Model(model_info, dataset_num_classes)
 
