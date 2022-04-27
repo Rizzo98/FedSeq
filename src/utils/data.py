@@ -11,19 +11,24 @@ from src.utils import non_iid_partition_with_dirichlet_distribution
 log = logging.getLogger(__name__)
 
 
-def get_dataset(requested_dataset):
+def get_dataset(requested_dataset, **kwargs):
     dataset_getter = {"cifar10": get_CIFAR10_data,
                       "cifar100": get_CIFAR100_data,
                       "shakespeare_niid": get_shakespeare_data,
                       "shakespeare_iid": get_shakespeare_data,
                       "emnist_niid": get_emnist_data,
-                      "emnist_iid": get_emnist_data}
+                      "emnist_iid": get_emnist_data,
+                      "soverflow_niid": get_soverflow_data,
+                      "soverflow_iid": get_soverflow_data,
+                      }
     dataset_transformation = {"cifar10": cifar_transform,
                               "cifar100": cifar_transform,
                               "shakespeare_niid": shakespeare_transform,
                               "shakespeare_iid": shakespeare_transform,
                               "emnist_niid": emnist_transform,
-                              "emnist_iid": emnist_transform}
+                              "emnist_iid": emnist_transform,
+                              "soverflow_niid": soverflow_transform,
+                              "soverflow_iid": soverflow_transform}
 
     if requested_dataset not in dataset_getter:
         raise KeyError(f"the requested dataset {requested_dataset} is not supported")
@@ -143,17 +148,66 @@ def emnist_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
         test_dataset = dataset_class(test_x, test_y,kwargs['dataset_num_class'])
         return local_datasets, test_dataset
 
-def create_datasets(dataset, num_clients, alpha):
+def get_soverflow_data(**kwargs):
+    datasets_path = os.path.join(os.getcwd(),'datasets','stackoverflow')
+    if kwargs['dataset_name']=='soverflow_niid':
+        train_dir = os.path.join(datasets_path, 'train', 'soverflow_niid')
+    elif kwargs['dataset_name']=='soverflow_iid':
+        train_dir = os.path.join(datasets_path, 'train', 'soverflow_iid')
+    files = os.listdir(train_dir)
+    files = [f for f in files if f.endswith('.json')]
+    train_data = []
+    train_labels = []
+    if kwargs['device'] == 'cpu':
+        files = files[:5]
+    for f in tqdm(files,desc='Loading training files'):
+        file = open(os.path.join(train_dir, f))
+        training_dict = json.load(file)
+        train_data += training_dict['x']
+        train_labels += training_dict['y']
+        file.close()
+    test_dir = os.path.join(datasets_path, 'test')
+    files = os.listdir(test_dir)
+    files = [f for f in files if f.endswith('.json')]
+    test_data = []
+    test_labels = []
+    if kwargs['device'] == 'cpu':
+        files = files[:2]
+    for f in tqdm(files,desc='Loading test files'):
+        file = open(os.path.join(test_dir, f))
+        test_dict = json.load(file)
+        test_data += test_dict['x']
+        test_labels += test_dict['y']
+    return train_data, train_labels, test_data, test_labels
+
+def soverflow_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
+    if centralized: #if centralized-> converting dataset to centralized
+        transformed_train_x = []
+        transformed_train_y = []
+        for client in train_x:
+            transformed_train_x += client
+        for client in train_y:
+            transformed_train_y += client
+        return transformed_train_x, transformed_train_y, test_x, test_y
+    else: #converting to federated
+        dataset_class = kwargs['dataset_class']
+        local_datasets = []
+        for i,(x,y) in enumerate(zip(train_x,train_y)):
+            local_datasets.append(dataset_class(x,y, kwargs['dataset_num_class'], kwargs['device'], client_id=i))
+        test_dataset = dataset_class(test_x, test_y, kwargs['dataset_num_class']-4, kwargs['device'])
+        return local_datasets, test_dataset
+
+def create_datasets(dataset, num_clients, alpha, **kwargs):
     
     dataset_getter, transform = get_dataset(dataset.name)
     dataset_class = eval(dataset.dataset_class)
     dataset_num_class = dataset.dataset_num_class
     dataset_size = dataset.dataset_size
-    train_img, train_label, test_img, test_label = dataset_getter(dataset_name=dataset.name)
+    train_img, train_label, test_img, test_label = dataset_getter(**kwargs, dataset_name=dataset.name)
 
     local_datasets, test_datasets = transform(False, train_img, train_label, test_img, test_label,\
         num_clients=num_clients, alpha=alpha, dataset_class=dataset_class,\
-            dataset_num_class=dataset_num_class, dataset_size=dataset_size, params=dataset.params)
+            dataset_num_class=dataset_num_class, dataset_size=dataset_size, params=dataset.params, device=kwargs['device'])
 
     return local_datasets, test_datasets
 

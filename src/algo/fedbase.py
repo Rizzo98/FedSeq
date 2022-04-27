@@ -36,7 +36,7 @@ class FedBase(Algo):
         self.percentages_saved = dataset.percentages_saved
         self.epochs_avg_accuracy = 5
         # get the proper dataset
-        self.local_datasets, self.test_dataset = create_datasets(self.dataset, self.num_clients, alpha)
+        self.local_datasets, self.test_dataset = create_datasets(self.dataset, self.num_clients, alpha, device=self.device)
         self.model_info = model_info
         model = Model(model_info, self.dataset_num_classes)
         model_has_batchnorm = model.has_batchnorm()

@@ -1,0 +1,9 @@
+# @package _global_
+model:
+  type: soverflow
+  classname: SoverflowRnn
+  feature_extract: False #False means finetuning
+  pretrained: False
+  input_length: 20
+  embed_size: 96
+  hidden_size: 670

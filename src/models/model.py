@@ -3,7 +3,7 @@ from src.models import *
 import torch
 
 class Model(nn.Module):
-    available_models = ["lenet", "shakespeare", "emnist"]
+    available_models = ["lenet", "shakespeare", "emnist", "soverflow"]
     keytypes = {"type": str, "classname": str, "pretrained": bool, "feature_extract": bool}
 
     def __init__(self, model_info, num_classes: int) -> None:

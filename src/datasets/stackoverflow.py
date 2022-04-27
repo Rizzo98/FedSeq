@@ -3,10 +3,12 @@ import torch
 import numpy as np
 
 class StackoverflowLocalDataset(Dataset):
-    def __init__(self, x, y, client_id=-1, **kvargs) -> None:
+    def __init__(self, x, y, num_classes, device, client_id=-1) -> None:
         self.client_id = client_id
-        self.x = x
-        self.labels = [y_[0] for y_ in y]
+        self.x = np.array(x)
+        self.labels = np.array(y)
+        self.num_classes = num_classes
+        self.device = device
     
     def __getitem__(self, index):
         return torch.tensor(self.x[index]), torch.tensor(self.labels[index])
@@ -15,6 +17,8 @@ class StackoverflowLocalDataset(Dataset):
         return len(self.labels)
     
     def get_subset_eq_distr(self, n: int):
+        if self.device == 'cpu':
+            n = int(n*0.14)
         sorted_index = np.argsort(self.labels)
         x = self.x[sorted_index]
         y = self.labels[sorted_index]
