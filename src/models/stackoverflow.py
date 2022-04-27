@@ -1,9 +1,9 @@
 import torch.nn as nn
 
 class SoverflowRnn(nn.Module):
-    def __init__(self, num_classes, input_length=20, embed_size=96,hidden_size=670):
+    def __init__(self, num_classes, embed_size=96, hidden_size=670):
         super(SoverflowRnn,self).__init__()
-        self.embedding = nn.Embedding(input_length,embed_size)
+        self.embedding = nn.Embedding(num_classes, embed_size)
         self.lstm = nn.LSTM(input_size=embed_size,hidden_size=hidden_size,num_layers=1)
         self.linear1 = nn.Linear(hidden_size,embed_size)
         self.linear2 = nn.Linear(embed_size, num_classes)

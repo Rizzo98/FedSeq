@@ -159,7 +159,7 @@ def get_soverflow_data(**kwargs):
     train_data = []
     train_labels = []
     if kwargs['device'] == 'cpu':
-        files = files[:5]
+        files = files[:1]
     for f in tqdm(files,desc='Loading training files'):
         file = open(os.path.join(train_dir, f))
         training_dict = json.load(file)
