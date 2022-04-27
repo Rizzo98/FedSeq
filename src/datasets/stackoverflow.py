@@ -18,21 +18,15 @@ class StackoverflowLocalDataset(Dataset):
     
     def get_subset_eq_distr(self, n: int):
         if self.device == 'cpu':
-            n = int(n*0.14)
-        sorted_index = np.argsort(self.labels)
-        x = self.x[sorted_index]
-        y = self.labels[sorted_index]
-        x_per_class = n//self.num_classes
-        elements, count = np.unique(y, return_counts=True)
-        assert all([c>x_per_class for c in count]), 'Too many exemplars!'
-        range_index_per_class = [(sum(count[:i]),sum(count[:i])+count[i]) for i in range(len(elements))]
-        subset_indexes = []
-        for i in range(self.num_classes):
-            subset_indexes += list(np.random.choice(np.arange(*range_index_per_class[i]), x_per_class, replace=False))
-        
-        sub_x = x[subset_indexes]
-        sub_y = y[subset_indexes]
+            n = int(n*(1/34))
 
-        self.x = np.delete(x,subset_indexes, axis=0)
-        self.labels = np.delete(y,subset_indexes)
-        return StackoverflowLocalDataset(sub_x, sub_y)
+        sub_indexes = np.random.choice(list(range(len(self))),n, replace=False)
+        sub_x = []
+        sub_y = []
+        for i in sub_indexes:
+            sub_x.append(self.x[i])
+            sub_y.append([self.labels[i]])
+        self.x = [x for i,x in enumerate(self.x) if i not in sub_indexes]
+        self.labels = [y for i,y in enumerate(self.labels) if i not in sub_indexes]
+
+        return StackoverflowLocalDataset(sub_x, sub_y,self.num_classes,self.device)
