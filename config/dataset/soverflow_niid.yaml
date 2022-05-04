@@ -1,7 +1,7 @@
 name: soverflow_niid
 dataset_class: StackoverflowLocalDataset
 dataset_num_class: 10004
-dataset_size: 135818730
+dataset_size: 135818730 #K=342477, B=16
 num_exemplar: 165860
 average_accuracy_rounds: 100
 accuracy_centralized: null

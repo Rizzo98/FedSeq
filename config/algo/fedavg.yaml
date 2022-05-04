@@ -12,7 +12,7 @@ algo:
       args:
         momentum: 0
     center_server:
-      classname: FedAvgCenterServer
+      classname: LayerPermCenterServer
     client:
       classname: FedAvgClient
       args: {}

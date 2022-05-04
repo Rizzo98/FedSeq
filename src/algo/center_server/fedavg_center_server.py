@@ -27,7 +27,7 @@ class FedAvgCenterServer(CenterServer):
                         key] += local_state[key] * aggregation_weights[k]
         dest.load_state_dict(update_state)
 
-    def aggregation(self, clients: List[Client], aggregation_weights: List[float]):
+    def aggregation(self, clients: List[Client], aggregation_weights: List[float], round:int):
         FedAvgCenterServer.weighted_aggregation([c.send_model() for c in clients], aggregation_weights, self.model)
 
     def validation(self, loss_fn) -> Tuple[float, MeasureMeter]:

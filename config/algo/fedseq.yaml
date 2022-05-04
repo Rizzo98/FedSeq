@@ -13,7 +13,7 @@ algo:
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
       disomogeneity_measures: ["gini", "kullback"] #measures that apply only to probability distributions
-      classname: GreedyClusterMaker
+      classname: RandomClusterMaker
       max_clients: 5
       min_examples: 400
       measure: cosine

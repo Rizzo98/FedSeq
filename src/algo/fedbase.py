@@ -160,7 +160,7 @@ class FedBase(Algo):
         else:  # uniform
             total_weight = len(clients)
             weights = [1. / total_weight for _ in range(len(clients))]
-        self.center_server.aggregation(clients, weights)
+        self.center_server.aggregation(clients, weights, self._round)
 
     def save_checkpoint(self):
         savepickle({**self.result, "round": self._round, "model": self.center_server.model},

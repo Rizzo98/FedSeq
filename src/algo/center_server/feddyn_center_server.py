@@ -15,7 +15,7 @@ class FedDynCenterServer(FedAvgCenterServer):
     def from_center_server(server: CenterServer, alpha, num_clients):
         return FedDynCenterServer(server.model, server.dataloader, server.device, alpha, num_clients)
 
-    def aggregation(self, clients: List[Client], aggregation_weights: List[float]):
+    def aggregation(self, clients: List[Client], aggregation_weights: List[float], round:int):
         # compute the sum of all the model parameters of the clients involved in training
         sum_theta = [torch.zeros_like(p.data) for p in self.model.parameters()]
         for c in clients:

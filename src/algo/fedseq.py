@@ -9,6 +9,7 @@ from src.utils import savepickle
 import numpy as np
 from torch.nn import CrossEntropyLoss
 from src.algo import FedBase
+from src.algo.center_server import LayerPermCenterServer
 import itertools as it
 
 log = logging.getLogger(__name__)
@@ -88,6 +89,10 @@ class FedSeq(FedBase):
 
         # use the elements extracted from test set as examplars
         exemplar_dataset = self.excluded_from_test
+
+        if type(self.center_server) is LayerPermCenterServer:
+            self.center_server.set_exemplar_set(exemplar_dataset)
+
         evaluations = {}
         if any(m.requires_clients_evaluation() for m in clustering_methods.values()):
             log.info("Evaluating clients")

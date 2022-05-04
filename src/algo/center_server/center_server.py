@@ -16,7 +16,7 @@ class CenterServer(ABC):
         self.measure_meter = MeasureMeter(model.num_classes)
 
     @abstractmethod
-    def aggregation(self, clients: List[Client], aggregation_weights: List[float]):
+    def aggregation(self, clients: List[Client], aggregation_weights: List[float], round: int):
         pass
 
     def send_model(self):
