@@ -3,3 +3,4 @@ from .fedavg_center_server import FedAvgCenterServer
 from .layer_perm_center_server import LayerPermCenterServer
 from .scaffold_center_server import SCAFFOLDCenterServer
 from .feddyn_center_server import FedDynCenterServer
+from .models_alignment_center_server import ModelsAllignmentCenterServer

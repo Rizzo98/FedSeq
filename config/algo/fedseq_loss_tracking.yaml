@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - fedseq
+
+algo:
+  type: fedseq_loss_tracking
+  classname: FedSeqLossTracking
+  params:
+    center_server:
+      classname: ModelsAllignmentCenterServer
+    
