@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 class CifarLocalDataset(Dataset):
-    def __init__(self, images, labels, num_classes, client_id=-1, train=True):
+    def __init__(self, images, labels, num_classes, client_id=-1, train=True, **kvargs):
         self.images = images
         self.labels = labels
         self.num_classes = num_classes

@@ -1,9 +1,9 @@
-name: shakespeare_niid
+name: shakespeare_niid  #K=100 if reduced else K=1102
 dataset_class: ShakespeareLocalDataset
 dataset_num_class: 80
-dataset_size: 200000
-num_exemplar: 800
+dataset_size: 3391236 #, 200000
+num_exemplar: 13565 #, 800
 average_accuracy_rounds: 25
-accuracy_centralized: 52.03
+accuracy_centralized: null #52.03
 percentages_saved: [0.7, 0.8, 0.9]
 params:

@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 class ShakespeareLocalDataset(Dataset):
-    def __init__(self, x, y, client_id=-1, **kvargs) -> None:
+    def __init__(self, x, y, num_classes=80, client_id=-1, **kvargs) -> None:
         self.client_id = client_id
         self.x = x
         self.labels = [y_[0] for y_ in y]

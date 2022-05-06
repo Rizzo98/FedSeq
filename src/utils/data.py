@@ -83,10 +83,10 @@ def cifar_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
 
 def get_shakespeare_data(**kwargs):
     if kwargs['dataset_name']=='shakespeare_niid':
-        train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_niid.json')))
+        train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_full_niid.json')))
     elif kwargs['dataset_name']=='shakespeare_iid':
         train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_iid.json')))
-    test_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','test_sampled.json')))
+    test_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','test_processed.json')))
     return train_data['x'], train_data['y'], test_data['x'], test_data['y']
 
 def shakespeare_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
@@ -193,8 +193,8 @@ def soverflow_transform(centralized, train_x, train_y, test_x, test_y, **kwargs)
         dataset_class = kwargs['dataset_class']
         local_datasets = []
         for i,(x,y) in enumerate(zip(train_x,train_y)):
-            local_datasets.append(dataset_class(x,y, kwargs['dataset_num_class'], kwargs['device'], client_id=i))
-        test_dataset = dataset_class(test_x, test_y, kwargs['dataset_num_class']-4, kwargs['device'])
+            local_datasets.append(dataset_class(x,y, kwargs['dataset_num_class'], device = kwargs['device'], client_id=i))
+        test_dataset = dataset_class(test_x, test_y, kwargs['dataset_num_class'], device = kwargs['device'], train=False)
         return local_datasets, test_dataset
 
 def create_datasets(dataset, num_clients, alpha, **kwargs):

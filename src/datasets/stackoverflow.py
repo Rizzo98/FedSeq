@@ -3,12 +3,15 @@ import torch
 import numpy as np
 
 class StackoverflowLocalDataset(Dataset):
-    def __init__(self, x, y, num_classes, device, client_id=-1, **kvargs) -> None:
+    def __init__(self, x, y, num_classes, client_id=-1, **kvargs) -> None:
         self.client_id = client_id
         self.x = np.array(x)
         self.labels = np.array(y)
         self.num_classes = num_classes
-        self.device = device
+        self.device = kvargs['device'] if 'device' in kvargs else 'cuda:0'
+        self.train = kvargs['train'] if 'train' in kvargs else True
+        if not self.train:
+            self.num_classes -= 4
     
     def __getitem__(self, index):
         return torch.tensor(self.x[index]), torch.tensor(self.labels[index])
@@ -29,4 +32,4 @@ class StackoverflowLocalDataset(Dataset):
         self.x = [x for i,x in enumerate(self.x) if i not in sub_indexes]
         self.labels = [y for i,y in enumerate(self.labels) if i not in sub_indexes]
 
-        return StackoverflowLocalDataset(sub_x, sub_y,self.num_classes,self.device)
+        return StackoverflowLocalDataset(sub_x, sub_y,self.num_classes,device = self.device, train = self.train)
