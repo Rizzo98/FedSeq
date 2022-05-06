@@ -6,7 +6,7 @@ import numpy as np
 import random
 from abc import abstractmethod
 from torch.utils.data import DataLoader
-
+from src.datasets import StackoverflowLocalDataset
 from src.algo.center_server import *
 from src.utils import create_datasets, savepickle
 from src.algo import Algo
@@ -127,6 +127,14 @@ class FedBase(Algo):
             self.save_checkpoint()
             if self.completed:
                 self.save_result()
+                if isinstance(self.center_server.dataloader.dataset, StackoverflowLocalDataset):
+                    loss = Algo.test(self.center_server.model, self.center_server.measure_meter, self.center_server.device, CrossEntropyLoss(), self.center_server.dataloader)
+                    accuracy = self.center_server.measure_meter.accuracy_overall
+                    self.writer.add_summary_value('Final_loss_whole_dataset', loss)
+                    self.writer.add_summary_value('Final_accuracy_whole_dataset', accuracy)
+                    log.info(
+                        f"[Final round] Test set on whole Stackoverflow dataset: Average loss: {loss:.4f}, Accuracy: {accuracy:.2f}%"
+                    )
                 self.writer.add_summary_value(f'Average_accuracy_{self.dataset.average_accuracy_rounds}_rounds',\
                     self.writer.local_store['Avg_acc']/self.dataset.average_accuracy_rounds)
 

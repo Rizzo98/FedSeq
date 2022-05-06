@@ -90,6 +90,23 @@ class Algo(ABC):
                 meter.update(pred, target)
         test_loss = test_loss / len(data)
         return test_loss
+    
+    def test_subsample(model: nn.Module, meter: MeasureMeter, device: str, loss_fn, data: DataLoader, indices: set) -> float:
+        test_loss = 0
+        tot_examples = 0
+        model.eval()
+        with torch.no_grad():
+            for i, (img, target) in enumerate(tqdm(data, desc='Testing on random subset')):
+                if i in indices:
+                    tot_examples += len(target)
+                    img = img.to(device)
+                    target = target.to(device)
+                    logits = model(img)
+                    test_loss += loss_fn(logits, target).item()
+                    pred = logits.argmax(dim=1, keepdim=True)
+                    meter.update(pred, target)
+        test_loss = test_loss / len(indices)
+        return test_loss
 
     def save_result(self):
         savepickle(self.result, os.path.join(self.savedir, f"result{self.output_suffix}.pkl"))

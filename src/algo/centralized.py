@@ -1,9 +1,9 @@
 import logging
 import pickle
 import time
-
+import numpy as np
 import torch.optim.lr_scheduler
-
+from torch.nn.modules.loss import CrossEntropyLoss
 from src.models import Model
 from src.datasets import *
 from torch.utils.data import DataLoader
@@ -70,6 +70,11 @@ class Centralized(Algo):
             self.save_checkpoint()
             if self.completed:
                 self.save_result()
+                if isinstance(self.test_loader.dataset, StackoverflowLocalDataset):
+                    loss = Algo.test(self.model, self.measure_meter, self.device, CrossEntropyLoss(), self.test_loader)
+                    accuracy = self.measure_meter.accuracy_overall
+                    self.writer.add_summary_value('Final_loss_whole_dataset', loss)
+                    self.writer.add_summary_value('Final_accuracy_whole_dataset', accuracy)
                 self.writer.add_summary_value(f'Average_accuracy_{self.dataset.average_accuracy_rounds}_rounds',\
                     self.writer.local_store['Avg_acc']/self.dataset.average_accuracy_rounds)
 
@@ -81,7 +86,11 @@ class Centralized(Algo):
     def validation_step(self):
         self.measure_meter.reset()
         now = time.time()
-        test_loss = Algo.test(self.model, self.measure_meter, self.device, self.loss_fn, self.test_loader)
+        if isinstance(self.test_loader.dataset, StackoverflowLocalDataset):
+            random_indices = set(np.random.default_rng().choice(len(self.test_loader)-1, int(10000 / self.test_loader.batch_size), replace=False))
+            test_loss = Algo.test_subsample(self.model, self.measure_meter, self.device, self.loss_fn, self.test_loader, random_indices)    
+        else:
+            test_loss = Algo.test(self.model, self.measure_meter, self.device, self.loss_fn, self.test_loader)
         accuracy = self.measure_meter.accuracy_overall
         log.info(
             f"[Epochs: {self._round: 04}] Test set: Average loss: {test_loss:.4f}, Accuracy: {accuracy:.2f}%"
