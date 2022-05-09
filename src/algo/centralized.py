@@ -105,6 +105,9 @@ class Centralized(Algo):
             self.writer.add_scalar("val/loss", test_loss, self._round)
             self.writer.add_scalar("val/accuracy", accuracy, self._round)
             self.writer.add_scalar("val/time_elapsed", now, self._round)
+            if self.writer.local_store:
+                self.writer.save_object(self.writer.local_store, 'local_store')
+
 
         self.result['loss'].append(test_loss)
         self.result['accuracy'].append(accuracy)
