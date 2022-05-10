@@ -40,7 +40,7 @@ class FedSeqSuperClient(Client):
         return client.send_model()
         # add delay here to simulate real life
 
-    def __train_single_client(self, client: Client, optimizer, optimizer_args, local_epoch, loss_fn):
+    def _train_single_client(self, client: Client, optimizer, optimizer_args, local_epoch, loss_fn):
         client.client_update(optimizer, optimizer_args, local_epoch, loss_fn)
 
     def __compute_averaged(self, models: List[Model]) -> None:
@@ -55,14 +55,14 @@ class FedSeqSuperClient(Client):
         self.__forgetting_stats = []
         dropping = self.__clients_dropping()
         clients_ordering = self.__select_clients_ordering()
-        model_sending = self.__select_sending_strategy()
+        model_sending = self._select_sending_strategy()
         final_model_computing: Callable[[List[Model]], None] = self.__select_model_computing()
         for _ in range(sequential_rounds):
             models, current_model, ordered_clients = [], self.model, clients_ordering(dropping(self.__clients))
             self.__forgetting_stats.append({})
             for client in ordered_clients:
                 model_sending(client, current_model)
-                self.__train_single_client(client, optimizer, optimizer_args, self.clients_local_epoch, loss_fn)
+                self._train_single_client(client, optimizer, optimizer_args, self.clients_local_epoch, loss_fn)
                 self.__check_catastrophic_forgetting(client, CrossEntropyLoss(), ordered_clients)
                 current_model = self.__get_model_from_client(client)
                 models.append(current_model)
@@ -93,7 +93,7 @@ class FedSeqSuperClient(Client):
             ex_per_class += client.num_ex_per_class()
         return ex_per_class
 
-    def __select_sending_strategy(self):
+    def _select_sending_strategy(self):
         def send_a_copy(client: Client, model: Model):
             client.model = copy.deepcopy(model)
 

@@ -8,8 +8,7 @@ from src.algo.fed_clients import Client
 import math
 import itertools as it
 from abc import ABC, abstractmethod
-
-from src.algo.fedseq_modules import FedSeqSuperClient
+from src.algo.fedseq_modules import FedSeqSuperClient, GraphSuperclient
 import logging
 
 from src.utils import savepickle

@@ -54,7 +54,7 @@ class FedSeq(FedBase):
             if self.evaluator.extract in evaluations:
                 clients_representer = evaluations[self.evaluator.extract].representers
 
-            self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,                                                                               clients_representer,
+            self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,clients_representer,
                                                                               self.evaluator.extract)
         else:
             self.superclients: List[FedSeqSuperClient] = pickle.load(open(params.clustering.precomputed,'rb')) 
@@ -100,7 +100,9 @@ class FedSeq(FedBase):
             client_evaluator = ClientEvaluator(exemplar_dataset, model_evaluator, list(self.extractions),
                                                self.evaluator.variance_explained, self.evaluator.epochs)
             optim_class, optim_args = eval(self.evaluator.optim.classname), self.evaluator.optim.args
-            evaluations = client_evaluator.evaluate(self.clients, optim_class, optim_args, CrossEntropyLoss)
+            evaluations = client_evaluator.evaluate(self.clients, optim_class, optim_args, CrossEntropyLoss,
+                save_representers=self.save_representers)
+                
         if self.save_representers:
             savepickle(evaluations,f'{self.savedir}/representers.pkl')
         return evaluations

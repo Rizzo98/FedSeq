@@ -1,4 +1,5 @@
 from src.algo.fedseq_modules.superclient import FedSeqSuperClient
+from src.algo.fedseq_modules.graph_superclient import GraphSuperclient
 from src.algo.fedseq_modules.cluster_maker import ClusterMaker, InformedClusterMaker
 from src.algo.fedseq_modules.random_cluster_maker import RandomClusterMaker
 from src.algo.fedseq_modules.greedy_cluster_maker import GreedyClusterMaker

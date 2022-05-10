@@ -10,3 +10,4 @@ sklearn
 matplotlib
 wandb
 tqdm
+networkx

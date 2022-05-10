@@ -7,5 +7,5 @@ algo:
   classname: FedSeqLossTracking
   params:
     center_server:
-      classname: ModelsAllignmentCenterServer
+      classname: LossWeightCenterServer
     

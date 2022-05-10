@@ -45,13 +45,13 @@ class ClientEvaluator:
         self.variance_explained = variance_explained
         self.epochs = epochs
 
-    def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class) -> Dict[str, ClientEvaluation]:
+    def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class, save_representers = False) -> Dict[str, ClientEvaluation]:
         evaluations = {}
         representers = {e: list() for e in self.extract}
         for client in tqdm(clients, desc='Pretraining of clients'):
             self.__client_pre_train(client, optimizer, optimizer_args, loss_class)
             for to_extract in self.extract:
-                client_representer = self.__get_representer(client, to_extract)
+                client_representer = self.__get_representer(client, to_extract, save_representers)
                 representers[to_extract].append(client_representer)
             client.model = None  # to save space in GPU
         for to_extract in self.extract:
@@ -69,9 +69,9 @@ class ClientEvaluator:
         client.client_update(optimizer, optimizer_args, self.epochs, loss_fn)
         client.dataloader = old_dataloader
 
-    def __get_representer(self, client: Client, to_extract: str) -> np.ndarray:
+    def __get_representer(self, client: Client, to_extract: str, save_representers:bool) -> np.ndarray:
         if to_extract == "confidence":
-            return self.__get_prediction(client)
+            return self.__get_prediction(client, save_representers)
         else:
             fc_layers = ClientEvaluator.extract_fully_connected(client.model)
             if to_extract == "classifierLast":
@@ -105,16 +105,21 @@ class ClientEvaluator:
                 fc_layers.append(layer.weight.detach().cpu().numpy().flatten())
         return fc_layers
 
-    def __get_prediction(self, client: Client):
+    def __get_prediction(self, client: Client, save_representers:bool):
         model = self.__get_model(client)
-        model.to("cpu")
+        if not save_representers:
+            model.to("cpu")
         model.eval()
         n_classes = self.model.num_classes
         conf_vector = np.zeros(n_classes)
         with torch.no_grad():
             for exemplar, target in self.exemplar_dataloader:
+                if save_representers:
+                    exemplar = exemplar.to('cuda:0')
+                    target = target.to('cuda:0')
                 logits = model(exemplar)[0].detach().cpu().numpy()
                 logits = softmax(logits)
                 conf_vector[target] += logits[target]
+                
         conf_vector = conf_vector / np.sum(conf_vector)
         return conf_vector
