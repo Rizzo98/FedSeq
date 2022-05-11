@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import copy
 from sklearn.decomposition import PCA
+from sklearn.decomposition import IncrementalPCA
 from src.algo.fed_clients.base_client import Client
 import logging
 from tqdm import tqdm
@@ -84,10 +85,14 @@ class ClientEvaluator:
     def __reduce_representers(self, representers: List[np.ndarray], to_extract: str):
         if self.variance_explained > 0 and to_extract != "confidence":
             n_components_before = len(representers[0])
-            reducer = PCA(n_components=self.variance_explained, svd_solver='full')
-            new_representers = reducer.fit_transform(representers)
-            log.info(
+            if len(representers)*n_components_before<5_000*1_000_000:
+                reducer = PCA(n_components=self.variance_explained, svd_solver='full')
+                log.info(
                 f"PCA with var_expl={self.variance_explained} on {to_extract}, kept {reducer.n_components_}/{n_components_before} components")
+            else: #too much ram!
+                reducer = IncrementalPCA(n_components=15, batch_size=200)
+                log.info(f'Incremental PCA used from {n_components_before} components to 15.')
+            new_representers = reducer.fit_transform(representers)
             return new_representers
         return representers
 
