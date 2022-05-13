@@ -87,12 +87,23 @@ class ClientEvaluator:
             n_components_before = len(representers[0])
             if len(representers)*n_components_before<5_000*1_000_000:
                 reducer = PCA(n_components=self.variance_explained, svd_solver='full')
+                new_representers = reducer.fit_transform(representers)
                 log.info(
                 f"PCA with var_expl={self.variance_explained} on {to_extract}, kept {reducer.n_components_}/{n_components_before} components")
             else: #too much ram!
-                reducer = IncrementalPCA(n_components=15, batch_size=200)
+                new_representers = None
+                chunk_size=200
+                reducer = IncrementalPCA(n_components=15)
+                for i in range(0,len(representers),chunk_size):
+                    max_index = min(len(representers),i+chunk_size)
+                    reducer.partial_fit(representers[i:max_index])
+                for i in range(0,len(representers),chunk_size):
+                    max_index = min(len(representers),i+chunk_size)
+                    if new_representers==None:
+                        new_representers = reducer.transform(representers[i:max_index])
+                    else:
+                        new_representers = np.vstack((new_representers,reducer.transform(representers[i:max_index])))
                 log.info(f'Incremental PCA used from {n_components_before} components to 15.')
-            new_representers = reducer.fit_transform(representers)
             return new_representers
         return representers
 
