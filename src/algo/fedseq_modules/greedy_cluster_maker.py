@@ -1,5 +1,6 @@
 from src.algo.fedseq_modules.cluster_maker import ClientCluster, InformedClusterMaker
 from src.algo.fed_clients.base_client import Client
+from tqdm import tqdm
 from typing import List, Tuple
 import numpy as np
 import logging
@@ -37,16 +38,18 @@ class GreedyClusterMaker(InformedClusterMaker):
         assert all(conf_len == len(conf) for conf in representers), "Mismatching dimensions"
 
         cluster = ClientCluster(n_clusters, conf_len, log)
-        while len(rem_clients) != 0:
-            if cluster.num_examples() < self._min_examples and cluster.num_clients() < self._max_clients:
-                # extract best client
-                (client, confidence) = self._extract_best_client(cluster.confidence(), rem_clients,
-                                                                 rem_representers)
-                cluster.add_client(client, confidence)
-            else:
-                clusters.append(cluster)
-                n_clusters += 1
-                cluster = ClientCluster(n_clusters, conf_len, log)
+        with tqdm(total=len(rem_clients),desc='Clustering clients') as pbar:
+            while len(rem_clients) != 0:
+                if cluster.num_examples() < self._min_examples and cluster.num_clients() < self._max_clients:
+                    # extract best client
+                    (client, confidence) = self._extract_best_client(cluster.confidence(), rem_clients,
+                                                                    rem_representers)
+                    cluster.add_client(client, confidence)
+                    pbar.update(1)
+                else:
+                    clusters.append(cluster)
+                    n_clusters += 1
+                    cluster = ClientCluster(n_clusters, conf_len, log)
         self._check_redistribution(cluster, clusters)
         self._collect_clustering_statistics(clients, ("clusters", [c.clients_id() for c in clusters]))
         return clusters

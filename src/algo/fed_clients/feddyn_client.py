@@ -4,6 +4,7 @@ from typing import Optional
 import torch
 from torch.nn import CrossEntropyLoss, functional as F
 from torch.utils.data import DataLoader
+from torch.nn.utils import clip_grad
 
 from src.algo.fed_clients.base_client import Client
 
@@ -48,6 +49,7 @@ class FedDynClient(Client):
                 loss -= linear_p
                 loss += self.alpha / 2. * quadratic_p
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(),8.0)
                 optimizer.step()
 
                 for prev_grads, new_params, prev_params in zip(self.prev_grads, self.model.parameters(),
