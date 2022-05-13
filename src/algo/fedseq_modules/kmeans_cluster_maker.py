@@ -19,6 +19,8 @@ class KMeansClusterMaker(InformedClusterMaker):
             List[ClientCluster]:
         k = self.num_classes
         k_means = KMeans(k).fit(representers)
+        for i, c in enumerate(clients):
+            c.cluster_id = k_means.labels_[i]
         k_clusters, mean, dev_std = KMeansClusterMaker._get_k_clusters(k_means.labels_, k)
         clusters: List[ClientCluster] = self._sample_from_kclusters(k_clusters, clients)
         k_cluster_ids = [[clients[i].client_id for i in k_cl] for k_cl in k_clusters]

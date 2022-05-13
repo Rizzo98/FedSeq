@@ -17,6 +17,7 @@ class Client(ABC):
         self.__num_classes = num_classes
         self.measure_meter = MeasureMeter(num_classes)
         self.dp = dp
+        self.cluster_id = None
 
     @property
     def model(self):

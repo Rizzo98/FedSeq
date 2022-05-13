@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - fedseq
+
+algo:
+  type: fedseq_dynamic
+  classname: FedSeqDynamic
+  params:
+    clustering:
+      classname: KMeansClusterMaker
+    
