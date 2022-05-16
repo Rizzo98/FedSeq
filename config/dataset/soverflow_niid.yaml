@@ -1,9 +1,9 @@
 name: soverflow_niid
 dataset_class: StackoverflowLocalDataset
 dataset_num_class: 10004
-dataset_size: 17116687 #K=342477, B=16, K=10000 if on cpu!!!!
+dataset_size: 17116687 #K=342477, B=16, K=40000 if on cpu!!!!
 num_exemplar: 4000
 average_accuracy_rounds: 5
-accuracy_centralized: null
+accuracy_centralized: 28.39
 percentages_saved: [0.7, 0.8, 0.9]
 params:

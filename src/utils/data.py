@@ -83,10 +83,10 @@ def cifar_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
 
 def get_shakespeare_data(**kwargs):
     if kwargs['dataset_name']=='shakespeare_niid':
-        train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_full_niid.json')))
+        train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_niid.json')))
     elif kwargs['dataset_name']=='shakespeare_iid':
         train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_iid.json')))
-    test_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','test_processed.json')))
+    test_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','test_sampled.json')))
     return train_data['x'], train_data['y'], test_data['x'], test_data['y']
 
 def shakespeare_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
@@ -159,7 +159,7 @@ def get_soverflow_data(**kwargs):
     train_data = []
     train_labels = []
     if kwargs['device'] == 'cpu':
-        files = files[:1]
+        files = files[:4]
     for f in tqdm(files[:4],desc='Loading training files'):
         file = open(os.path.join(train_dir, f))
         training_dict = json.load(file)
@@ -172,7 +172,7 @@ def get_soverflow_data(**kwargs):
     test_data = []
     test_labels = []
     if kwargs['device'] == 'cpu':
-        files = files[:2]
+        files = files[:4]
     for f in tqdm(files[:4],desc='Loading test files'):
         file = open(os.path.join(test_dir, f))
         test_dict = json.load(file)
