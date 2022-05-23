@@ -1,5 +1,3 @@
-from tkinter import FALSE
-from matplotlib.pyplot import axis
 from src.algo.center_server import FedAvgCenterServer
 from typing import List
 from src.algo.fed_clients import Client

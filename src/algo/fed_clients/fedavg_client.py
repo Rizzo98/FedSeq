@@ -22,6 +22,7 @@ class FedAvgClient(Client):
         optimizer = optimizer(self.model.parameters(), **optimizer_args)
         for _ in range(local_epoch):
             Algo.train(self.model, self.device, optimizer, loss_fn, self.dataloader)
+        self.model.to('cpu')
 
     def client_update_distillation(self, optimizer, optimizer_args, local_epoch, loss_fn):
         self.model.to(self.device)

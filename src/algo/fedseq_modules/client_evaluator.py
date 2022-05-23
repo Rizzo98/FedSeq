@@ -92,14 +92,14 @@ class ClientEvaluator:
                 f"PCA with var_expl={self.variance_explained} on {to_extract}, kept {reducer.n_components_}/{n_components_before} components")
             else: #too much ram!
                 new_representers = None
-                chunk_size=200
+                chunk_size=500
                 reducer = IncrementalPCA(n_components=15)
                 for i in range(0,len(representers),chunk_size):
                     max_index = min(len(representers),i+chunk_size)
                     reducer.partial_fit(representers[i:max_index])
                 for i in range(0,len(representers),chunk_size):
                     max_index = min(len(representers),i+chunk_size)
-                    if new_representers==None:
+                    if i==0:
                         new_representers = reducer.transform(representers[i:max_index])
                     else:
                         new_representers = np.vstack((new_representers,reducer.transform(representers[i:max_index])))
