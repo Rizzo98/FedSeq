@@ -1,0 +1,8 @@
+# @package _global_
+defaults:
+  - fedseq
+
+algo:
+  type: fedseq_GAN_attack
+  classname: FedSeqGANattack
+    
