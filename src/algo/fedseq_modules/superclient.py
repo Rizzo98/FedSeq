@@ -32,6 +32,15 @@ class FedSeqSuperClient(Client):
     @property
     def clients(self):
         return self.__clients
+    
+    @clients.setter
+    def clients(self,vals):
+        assert len(vals)==2, 'Wrong number of args'
+        pos = vals[0]
+        c = vals[1]
+        assert pos>0 and pos<len(self.__clients),'Incorrect position'
+        assert isinstance(c,Client),'Incorrect client'
+        self.__clients[pos]=c
 
     def __len__(self):
         return sum([len(client) for client in self.__clients])

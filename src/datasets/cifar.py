@@ -77,7 +77,6 @@ class CifarLocalDataset(Dataset):
         self.y_values = torch.from_numpy(np.asarray([self.__getitem__(i)[1] for i in range(len(self.images))]))
         self.y_values = one_hot(self.y_values, num_classes=self.num_classes).float()
 
-
     def get_subset_eq_distr(self, n: int):
         img_per_class = n//self.num_classes
         train_sorted_index = np.argsort(self.labels)
