@@ -4,3 +4,5 @@ from src.utils.utils import seed_everything, timer, tail_recursive, exit_on_sign
 from src.utils.data import create_datasets, get_dataset
 from src.utils.differential_privacy import generate_sigma_noise
 from src.utils.test_data import *
+from src.utils.aws_cv_task2vec import *
+

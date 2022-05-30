@@ -13,7 +13,7 @@ algo:
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
       disomogeneity_measures: ["gini", "kullback"] #measures that apply only to probability distributions
-      classname: RandomClusterMaker
+      classname: GreedyClusterMaker
       max_clients: 5
       min_examples: 400
       measure: cosine
@@ -23,7 +23,7 @@ algo:
       precomputed: null #path to representers or null
       extract_eval : []
       epochs: 10
-      extract: "classifierLast" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
+      extract: "task2vec" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
       extract_prop_distr: ["confidence"] #methods that extract probability distributions
       variance_explained: 0.9 #percentage of variance explained
     training:
