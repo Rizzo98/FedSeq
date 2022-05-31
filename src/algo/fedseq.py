@@ -98,7 +98,7 @@ class FedSeq(FedBase):
             log.info("Evaluating clients")
             model_evaluator = Model(self.model_info, self.dataset_num_classes)
             client_evaluator = ClientEvaluator(exemplar_dataset, model_evaluator, list(self.extractions),
-                                               self.evaluator.variance_explained, self.evaluator.epochs)
+                                               self.evaluator.variance_explained, self.evaluator.epochs, device=self.device)
             optim_class, optim_args = eval(self.evaluator.optim.classname), self.evaluator.optim.args
             evaluations = client_evaluator.evaluate(self.clients, optim_class, optim_args, CrossEntropyLoss,
                 save_representers=self.save_representers)

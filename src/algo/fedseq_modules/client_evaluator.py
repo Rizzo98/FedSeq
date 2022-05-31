@@ -43,7 +43,7 @@ class ClientEvaluator:
         assert 0 <= variance_explained <= 1, f"Illegal value, expected 0 <= variance_explained <= 1, given {variance_explained}"
         self.exemplar_dataset = exemplar_dataset
         self.exemplar_dataloader = DataLoader(exemplar_dataset, num_workers=0, batch_size=1)
-        self.model = model if all(to_extract != 'task2vec' for to_extract in extract) else models.get_model('resnet18', pretrained=True, num_classes=model.num_classes)
+        self.model = model if all(to_extract != 'task2vec' for to_extract in extract) else models.get_model('resnet18', pretrained=True, num_classes=model.num_classes).to(device=kwargs['device'])
         self.extract = extract
         self.variance_explained = variance_explained
         self.epochs = epochs
