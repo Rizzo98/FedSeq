@@ -26,7 +26,9 @@ algo:
       extract: "task2vec" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
       extract_prop_distr: ["confidence"] #methods that extract probability distributions
       variance_explained: 0.9 #percentage of variance explained
-      task2vec_isvariational: True #if task2vec used, compute it with variational or montecarlo method
+      task2vec:
+        method: 'montecarlo' #either variational or montecarlo method
+        probe_network: 'resnet18' #either resnet18 or resnet34 for now
     training:
       average_model: False
       sequential_rounds: 1 #number of sequential iterations through superclients' clients
