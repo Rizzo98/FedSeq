@@ -36,17 +36,18 @@ class ClientEvaluation:
 class ClientEvaluator:
     can_extract = ["confidence", "classifierLast", "classifierLast2", "classifierAll", "task2vec"]
 
-    def __init__(self, exemplar_dataset, model, extract: List[str], variance_explained: float, epochs: int, *args,
-                 **kwargs):
+    def __init__(self, exemplar_dataset, model, extract: List[str], variance_explained: float, epochs: int,
+                device: str, task2vec_isvariational: bool, *args, **kwargs):
         known_extraction = all(to_extract in ClientEvaluator.can_extract for to_extract in extract)
         assert known_extraction, "Unknown method to evaluate clients"
         assert 0 <= variance_explained <= 1, f"Illegal value, expected 0 <= variance_explained <= 1, given {variance_explained}"
         self.exemplar_dataset = exemplar_dataset
         self.exemplar_dataloader = DataLoader(exemplar_dataset, num_workers=0, batch_size=1)
-        self.model = model if all(to_extract != 'task2vec' for to_extract in extract) else models.get_model('resnet18', pretrained=True, num_classes=model.num_classes).to(device=kwargs['device'])
+        self.model = model if all(to_extract != 'task2vec' for to_extract in extract) else models.get_model('resnet18', pretrained=True, num_classes=model.num_classes).to(device=device)
         self.extract = extract
         self.variance_explained = variance_explained
         self.epochs = epochs
+        self.task2vec_isvariational = task2vec_isvariational
 
     def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class, save_representers = False) -> Dict[str, ClientEvaluation]:
         evaluations = {}
@@ -77,7 +78,11 @@ class ClientEvaluator:
         if to_extract == "confidence":
             return self.__get_prediction(client, save_representers)
         elif to_extract == "task2vec":
-            return t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None).embed(client.dataloader).hessian
+            if self.task2vec_isvariational:
+                self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method='variational')
+            else:
+                self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method='montecarlo')
+            return self.task2vec.embed(client.dataloader).hessian
         else:
             fc_layers = ClientEvaluator.extract_fully_connected(client.model)
             if to_extract == "classifierLast":

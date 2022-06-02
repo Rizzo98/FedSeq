@@ -68,6 +68,7 @@ class Task2Vec:
         assert skip_layers >= 0
 
         self.model = model
+        self.num_classes = self.model.classifier.out_features
         # Fix batch norm running statistics (i.e., put batch_norm layers in eval mode)
         self.model.train()
         self.device = get_device(self.model)
@@ -100,7 +101,14 @@ class Task2Vec:
         if self.skip_layers > 0:
             dataset = torch.utils.data.TensorDataset(self.model.layers[self.skip_layers].input_features,
                                                      self.model.layers[-1].targets)
-            data_loader = _get_loader(dataset, **self.loader_opts) 
+        else:
+            data, labels = next(iter(data_loader))
+            for i, (x, y) in enumerate(data_loader):
+                if i!=0:
+                    data = torch.vstack((data, x))
+                    labels = torch.cat((labels, y))
+            dataset = torch.utils.data.TensorDataset(data, labels)
+        data_loader = _get_loader(dataset, self.num_classes, **self.loader_opts) 
     
         device = get_device(self.model)
         logging.info("Computing Fisher...")
@@ -190,9 +198,14 @@ class Task2Vec:
         if self.skip_layers > 0:
             dataset = torch.utils.data.TensorDataset(self.model.layers[self.skip_layers].input_features,
                                                      self.model.layers[-1].targets)
-            train_loader = _get_loader(dataset, **self.loader_opts)
         else:
-            train_loader = data_loader
+            data, labels = next(iter(data_loader))
+            for i, (x, y) in enumerate(data_loader):
+                if i!=0:
+                    data = torch.vstack((data, x))
+                    labels = torch.cat((labels, y))
+            dataset = torch.utils.data.TensorDataset(data, labels)
+        train_loader = _get_loader(dataset, self.num_classes, **self.loader_opts)
 
         for epoch in range(epochs):
             self._run_epoch(train_loader, self.model, self.loss_fn, optimizer, epoch, beta=beta,
@@ -271,7 +284,7 @@ class Task2Vec:
         features = self.model.classifier.input_features.to(self.device)
 
         dataset = torch.utils.data.TensorDataset(features, targets)
-        data_loader = _get_loader(dataset, **self.loader_opts)
+        data_loader = _get_loader(dataset, self.num_classes, **self.loader_opts)
 
         if optimizer == 'adam':
             optimizer = torch.optim.Adam(self.model.fc.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -322,7 +335,7 @@ class Task2Vec:
         return Embedding(hessian=np.concatenate(hess), scale=np.concatenate(scale), meta=None)
 
 
-def _get_loader(trainset, testset=None, batch_size=64, num_workers=6, num_samples=10000, drop_last=True):
+def _get_loader(trainset, num_classes, testset=None, batch_size=64, num_workers=6, num_samples=10000, drop_last=True):
     if getattr(trainset, 'is_multi_label', False):
         raise ValueError("Multi-label datasets not supported")
     # TODO: Find a way to standardize this
@@ -332,7 +345,7 @@ def _get_loader(trainset, testset=None, batch_size=64, num_workers=6, num_sample
         labels = trainset.targets
     else:
         labels = list(trainset.tensors[1].cpu().numpy())
-    num_classes = int(getattr(trainset, 'num_classes', max(labels) + 1))
+    num_classes = num_classes
     class_count = np.eye(num_classes)[labels].sum(axis=0)
     weights = 1. / class_count[labels] / num_classes
     weights /= weights.sum()
