@@ -56,7 +56,7 @@ class FedSeq(FedBase):
                 clients_representer = evaluations[self.evaluator.extract].representers
 
             if params.save_plot_dist_matrix:
-                similarity.plot_distance_matrix(clients_representer, savedir)
+                similarity.plot_distance_matrix(clients_representer, savedir, distance=self.clustering.measure)
 
 
             self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,clients_representer,

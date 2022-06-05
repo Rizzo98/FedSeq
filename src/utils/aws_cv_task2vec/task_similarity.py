@@ -143,15 +143,23 @@ def jsd(e0, e1):
 
 @_register_distance
 def cosine(e0, e1):
+    if hasattr(e0, 'hessian'):
+        h0, h1 = get_hessians(e0, e1, normalized=False)
+    else:
+        h0, h1 = e0, e1
+    #h1, h2 = get_scaled_hessian(e0, e1)
+    return distance.cosine(h0, h1)
+
+@_register_distance
+def normalized_cosine(e0, e1):
     h1, h2 = get_scaled_hessian(e0, e1)
     return distance.cosine(h1, h2)
-
-
+'''
 @_register_distance
 def normalized_cosine(e0, e1):
     h1, h2 = get_variances(e0, e1, normalized=True)
     return distance.cosine(h1, h2)
-
+'''
 
 @_register_distance
 def correlation(e0, e1):
@@ -164,6 +172,12 @@ def entropy(e0, e1):
     h1, h2 = get_scaled_hessian(e0, e1)
     return np.log(2) - binary_entropy(h1).mean()
 
+@_register_distance
+def kullback(e0, e1):
+        mean_vector = (e0 + e1) / 2
+        uniform = np.ones(mean_vector.size) / mean_vector.size
+        klvec = [mean_vector[i] * np.log(mean_vector[i] / uniform[i]) for i in range(mean_vector.size)]
+        return 1 - (np.sum(klvec))
 
 def get_normalized_embeddings(embeddings, normalization=None):
     F = [1. / get_variance(e, normalized=False) if e is not None else None for e in embeddings]
@@ -211,13 +225,14 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
     from matplotlib import rcParams
     rcParams['figure.figsize'] = 15,15
     distance_matrix = pdist(embeddings, distance=distance)
-    cond_distance_matrix = squareform(distance_matrix, checks=False)
-    linkage_matrix = linkage(cond_distance_matrix, method='complete', optimal_ordering=True)
     if labels is not None:
         distance_matrix = pd.DataFrame(distance_matrix, index=labels, columns=labels)
-    sns.clustermap(distance_matrix, row_linkage=linkage_matrix, col_linkage=linkage_matrix, cmap='viridis_r')
-    plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
-    plt.clf()
+    if distance == 'cosine' or distance == 'normalized_cosine':
+        cond_distance_matrix = squareform(distance_matrix, checks=False)
+        linkage_matrix = linkage(cond_distance_matrix, method='complete', optimal_ordering=True)
+        sns.clustermap(distance_matrix, row_linkage=linkage_matrix, col_linkage=linkage_matrix, cmap='viridis_r')
+        plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
+        plt.clf()
     sns.heatmap(distance_matrix, cmap='viridis_r')
     plt.savefig(f'{savedir}/heatmap.png')
 
