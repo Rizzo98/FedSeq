@@ -185,10 +185,17 @@ class InformedClusterMaker(ClusterMaker):
         uniform = np.ones(mean_vector.size) / mean_vector.size
         klvec = [mean_vector[i] * np.log(mean_vector[i] / uniform[i]) for i in range(mean_vector.size)]
         return 1 - (np.sum(klvec))
+    
+    @staticmethod
+    def norm_cosine_diff(cluster_vec: np.ndarray, client_vec: np.ndarray) -> float:
+        v1 = cluster_vec / (cluster_vec + client_vec + 1e-8)
+        v2 = client_vec / (cluster_vec + client_vec + 1e-8)
+        return InformedClusterMaker.cosine_diff(v1, v2)
 
     def diff_measure(self) -> Callable[[np.ndarray, np.ndarray], float]:
         measures_methods = {"gini": InformedClusterMaker.gini_diff, "cosine": InformedClusterMaker.cosine_diff,
-                            "kullback": InformedClusterMaker.kullback_div, "wasserstein": wasserstein_distance}
+                            "kullback": InformedClusterMaker.kullback_div, "wasserstein": wasserstein_distance,
+                            "normalized_cosine": InformedClusterMaker.norm_cosine_diff}
         if self.measure not in measures_methods:
             raise NotImplementedError
         return measures_methods[self.measure]
