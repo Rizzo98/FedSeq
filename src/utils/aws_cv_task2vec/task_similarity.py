@@ -233,7 +233,7 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
         sns.clustermap(distance_matrix, row_linkage=linkage_matrix, col_linkage=linkage_matrix, cmap='viridis_r')
         plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
         plt.clf()
-    sns.heatmap(distance_matrix, cmap='viridis_r')
+    sns.heatmap(distance_matrix, cmap='viridis_r', cbar=False)
     plt.savefig(f'{savedir}/heatmap.png')
 
 
