@@ -86,7 +86,10 @@ def get_hessians(*embeddings, normalized=False):
 
 
 def get_scaled_hessian(e0, e1):
-    h0, h1 = get_hessians(e0, e1, normalized=False)
+    if hasattr(e0, 'hessian'):
+        h0, h1 = get_hessians(e0, e1, normalized=False)
+    else:
+        h0, h1 = e0, e1
     return h0 / (h0 + h1 + 1e-8), h1 / (h0 + h1 + 1e-8)
 
 
@@ -199,19 +202,24 @@ def cdist(from_embeddings, to_embeddings, distance='cosine'):
     return distance_matrix
 
 
-def plot_distance_matrix(embeddings, labels=None, distance='cosine'):
+def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
     import seaborn as sns
     from scipy.cluster.hierarchy import linkage
     from scipy.spatial.distance import squareform
     import pandas as pd
     import matplotlib.pyplot as plt
+    from matplotlib import rcParams
+    rcParams['figure.figsize'] = 15,15
     distance_matrix = pdist(embeddings, distance=distance)
     cond_distance_matrix = squareform(distance_matrix, checks=False)
     linkage_matrix = linkage(cond_distance_matrix, method='complete', optimal_ordering=True)
     if labels is not None:
         distance_matrix = pd.DataFrame(distance_matrix, index=labels, columns=labels)
     sns.clustermap(distance_matrix, row_linkage=linkage_matrix, col_linkage=linkage_matrix, cmap='viridis_r')
-    plt.show()
+    plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
+    plt.clf()
+    sns.heatmap(distance_matrix, cmap='viridis_r')
+    plt.savefig(f'{savedir}/heatmap.png')
 
 
 

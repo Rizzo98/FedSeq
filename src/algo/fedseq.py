@@ -6,6 +6,7 @@ from src.optim import *
 from src.algo.fedseq_modules import *
 from src.models import Model
 from src.utils import savepickle
+import src.utils.aws_cv_task2vec.task_similarity as similarity
 import numpy as np
 from torch.nn import CrossEntropyLoss
 from src.algo import FedBase
@@ -53,6 +54,10 @@ class FedSeq(FedBase):
             clients_representer = []
             if self.evaluator.extract in evaluations:
                 clients_representer = evaluations[self.evaluator.extract].representers
+
+            if params.save_plot_dist_matrix:
+                similarity.plot_distance_matrix(clients_representer, savedir)
+
 
             self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,clients_representer,
                                                                               self.evaluator.extract)

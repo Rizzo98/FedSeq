@@ -23,7 +23,7 @@ algo:
       precomputed: null #path to representers or null
       extract_eval : []
       epochs: 10
-      extract: "task2vec" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
+      extract: "confidence" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
       extract_prop_distr: ["confidence"] #methods that extract probability distributions
       variance_explained: 0.9 #percentage of variance explained
       task2vec:
@@ -39,5 +39,6 @@ algo:
     save_models: False
     save_representers: False
     save_superclients: False
+    save_plot_dist_matrix: True
     common:
       dp: #differential privacy

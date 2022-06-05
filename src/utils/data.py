@@ -67,13 +67,14 @@ def cifar_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
         shard_size = dataset_size // num_clients
         max_iter = kwargs['params'].max_iter_dirichlet
         rebalance = kwargs['params'].rebalance
+        shuffle_start_index = kwargs['params'].shuffle_start_index
 
         if shard_size < 1:
             raise ValueError("shard_size should be at least 1")
         if alpha == 0:  # Non-IID
             local_datasets, test_datasets = create_non_iid(train_x, test_x, train_y, test_y, num_clients,
                                                         shard_size,
-                                                        dataset_class, dataset_num_class)
+                                                        dataset_class, dataset_num_class, shuffle_start_index)
         else:
             local_datasets, test_datasets = create_using_dirichlet_distr(train_x, test_x, train_y, test_y,
                                                                         num_clients,
@@ -213,14 +214,15 @@ def create_datasets(dataset, num_clients, alpha, **kwargs):
 
 
 def create_non_iid(train_img, test_img, train_label, test_label, num_clients, shard_size,
-                   dataset_class, dataset_num_class):
+                   dataset_class, dataset_num_class, shuffle_start_index):
     
     train_sorted_index = np.argsort(train_label)
     train_img = train_img[train_sorted_index]
     train_label = train_label[train_sorted_index]
 
     shard_start_index = [i for i in range(0, len(train_img), shard_size)]
-    random.shuffle(shard_start_index)
+    if shuffle_start_index:
+        random.shuffle(shard_start_index)
     log.info(f"divide data into {len(shard_start_index)} shards of size {shard_size}")
 
     num_shards = len(shard_start_index) // num_clients

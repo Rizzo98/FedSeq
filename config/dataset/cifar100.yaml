@@ -9,3 +9,4 @@ percentages_saved: [0.7, 0.8, 0.9]
 params:
   max_iter_dirichlet: 100
   rebalance: False
+  shuffle_start_index: False #shuffles starting index for niid
