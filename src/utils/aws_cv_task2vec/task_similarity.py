@@ -62,7 +62,10 @@ def get_layerwise_variance(e, normalized=False):
 
 
 def get_variance(e, normalized=False):
-    var = 1. / np.array(e.hessian)
+    if hasattr(e, 'hessian'):
+        var = 1. / np.array(e.hessian)
+    else:
+        var = 1. / np.array(e)
     if normalized:
         lambda2 = 1. / np.array(e.scale)
         var = var / lambda2
@@ -233,6 +236,7 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
         sns.clustermap(distance_matrix, row_linkage=linkage_matrix, col_linkage=linkage_matrix, cmap='viridis_r')
         plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
         plt.clf()
+    plt.gcf().subplots_adjust(left=0.05)
     sns.heatmap(distance_matrix, cmap='viridis_r', cbar=False)
     plt.savefig(f'{savedir}/heatmap.png')
 
