@@ -39,6 +39,6 @@ algo:
     save_models: False
     save_representers: False
     save_superclients: False
-    save_plot_dist_matrix: True
+    save_plot_dist_matrix: False
     common:
       dp: #differential privacy
