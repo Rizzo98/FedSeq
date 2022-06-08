@@ -129,6 +129,10 @@ class WanDBSummaryWriter:
                 if config.algo.params.clustering.classname != 'RandomClusterMaker':
                     extract = f'extract:{config.algo.params.evaluator.extract}'
                     run_name+=f'_{extract}'
+                    if config.algo.params.evaluator.extract == 'task2vec':
+                        method = 'Var' if config.algo.params.evaluator.task2vec.method=='variational' else 'MC'
+                        probe = config.algo.params.evaluator.task2vec.probe_network
+                        run_name+=f'({method}-{probe})'
                     if config.algo.params.clustering.classname != 'KMeansClusterMaker':
                         measure = f'measure:{config.algo.params.clustering.measure}'
                         run_name+=f'_{measure}'
