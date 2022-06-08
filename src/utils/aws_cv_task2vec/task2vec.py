@@ -36,7 +36,6 @@ class Embedding:
 
 class ProbeNetwork(ABC, nn.Module):
     """Abstract class that all probe networks should inherit from.
-
     This is a standard torch.nn.Module but needs to expose a classifier property that returns the final classicifation
     module (e.g., the last fully connected layer).
     """
@@ -82,34 +81,30 @@ class Task2Vec:
         self.loss_fn = nn.CrossEntropyLoss() if not self.bernoulli else nn.BCEWithLogitsLoss()
         self.loss_fn = self.loss_fn.to(self.device)
 
-    def embed(self, data_loader):
+    def embed(self, dataset: Dataset):
         # Cache the last layer features (needed to train the classifier) and (if needed) the intermediate layer features
         # so that we can skip the initial layers when computing the embedding
         if self.skip_layers > 0:
-            self._cache_features(data_loader, indexes=(self.skip_layers, -1), loader_opts=self.loader_opts,
+            self._cache_features(dataset, indexes=(self.skip_layers, -1), loader_opts=self.loader_opts,
                                  max_samples=self.max_samples)
         else:
-            self._cache_features(data_loader, max_samples=self.max_samples)
+            self._cache_features(dataset, max_samples=self.max_samples)
         # Fits the last layer classifier using cached features
         self._fit_classifier(**self.classifier_opts)
-        self.compute_fisher(data_loader)
+
+        if self.skip_layers > 0:
+            dataset = torch.utils.data.TensorDataset(self.model.layers[self.skip_layers].input_features,
+                                                     self.model.layers[-1].targets)
+        self.compute_fisher(dataset)
         embedding = self.extract_embedding(self.model)
         return embedding
 
-    def montecarlo_fisher(self, data_loader, epochs: int = 1):
+    def montecarlo_fisher(self, dataset: Dataset, epochs: int = 1):
         logging.info("Using montecarlo Fisher")
         if self.skip_layers > 0:
             dataset = torch.utils.data.TensorDataset(self.model.layers[self.skip_layers].input_features,
                                                      self.model.layers[-1].targets)
-        else:
-            data, labels = next(iter(data_loader))
-            for i, (x, y) in enumerate(data_loader):
-                if i!=0:
-                    data = torch.vstack((data, x))
-                    labels = torch.cat((labels, y))
-            dataset = torch.utils.data.TensorDataset(data, labels)
-        data_loader = _get_loader(dataset, self.num_classes, **self.loader_opts) 
-    
+        data_loader = _get_loader(dataset, self.num_classes, **self.loader_opts)
         device = get_device(self.model)
         logging.info("Computing Fisher...")
 
@@ -172,7 +167,7 @@ class Task2Vec:
         )
         return metrics.avg
 
-    def variational_fisher(self, data_loader, epochs=1, beta=1e-7):
+    def variational_fisher(self, dataset: Dataset, epochs=1, beta=1e-7):
         logging.info("Training variational fisher...")
         parameters = []
         for layer in self.model.layers[self.skip_layers:-1]:
@@ -198,13 +193,6 @@ class Task2Vec:
         if self.skip_layers > 0:
             dataset = torch.utils.data.TensorDataset(self.model.layers[self.skip_layers].input_features,
                                                      self.model.layers[-1].targets)
-        else:
-            data, labels = next(iter(data_loader))
-            for i, (x, y) in enumerate(data_loader):
-                if i!=0:
-                    data = torch.vstack((data, x))
-                    labels = torch.cat((labels, y))
-            dataset = torch.utils.data.TensorDataset(data, labels)
         train_loader = _get_loader(dataset, self.num_classes, **self.loader_opts)
 
         for epoch in range(epochs):
@@ -217,19 +205,16 @@ class Task2Vec:
                 p.requires_grad = p.old_requires_grad
                 del p.old_requires_grad
 
-    def compute_fisher(self, data_loader):
+    def compute_fisher(self, dataset: Dataset):
         """
         Computes the Fisher Information of the weights of the model wrt the model output on the dataset and stores it.
-
         The Fisher Information Matrix is defined as:
             F = E_{x ~ dataset} E_{y ~ p_w(y|x)} [\nabla_w log p_w(y|x) \nabla_w log p_w(y|x)^t]
         where p_w(y|x) is the output probability vector of the network and w are the weights of the network.
         Notice that the label y is sampled from the model output distribution and not from the dataset.
-
         This code only approximate the diagonal of F. The result is stored in the model layers and can be extracted
         using the `get_fisher` method. Different approximation methods of the Fisher information matrix are available,
         and can be selected in the __init__.
-
         :param dataset: dataset with the task to compute the Fisher on
         """
         if self.method == 'variational':
@@ -238,15 +223,15 @@ class Task2Vec:
             fisher_fn = self.montecarlo_fisher
         else:
             raise ValueError(f"Invalid Fisher method {self.method}")
-        fisher_fn(data_loader, **self.method_opts)
+        fisher_fn(dataset, **self.method_opts)
 
-    def _cache_features(self, data_loader, indexes=(-1,), max_samples=None, loader_opts: dict = None):
+    def _cache_features(self, dataset: Dataset, indexes=(-1,), max_samples=None, loader_opts: dict = None):
         logging.info("Caching features...")
         if loader_opts is None:
             loader_opts = {}
-        #data_loader = DataLoader(dataset, shuffle=False, batch_size=loader_opts.get('batch_size', 64),
-        #                         num_workers=loader_opts.get('num_workers', 6), drop_last=False)
-        
+        data_loader = DataLoader(dataset, shuffle=False, batch_size=loader_opts.get('batch_size', 64),
+                                 num_workers=loader_opts.get('num_workers', 6), drop_last=False)
+
         device = next(self.model.parameters()).device
 
         def _hook(layer, inputs):
@@ -310,7 +295,6 @@ class Task2Vec:
         """
         Reads the values stored by `compute_fisher` and returns them in a common format that describes the diagonal of the
         Fisher Information Matrix for each layer.
-
         :param model:
         :return:
         """
@@ -345,7 +329,6 @@ def _get_loader(trainset, num_classes, testset=None, batch_size=64, num_workers=
         labels = trainset.targets
     else:
         labels = list(trainset.tensors[1].cpu().numpy())
-    num_classes = num_classes
     class_count = np.eye(num_classes)[labels].sum(axis=0)
     weights = 1. / class_count[labels] / num_classes
     weights /= weights.sum()

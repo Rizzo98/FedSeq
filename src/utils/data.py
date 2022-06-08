@@ -5,6 +5,7 @@ import random
 import logging
 import json
 import os
+import torch
 from tqdm import tqdm
 from src.utils import non_iid_partition_with_dirichlet_distribution
 
@@ -296,3 +297,20 @@ def create_using_dirichlet_distr(train_img, test_img, train_label, test_label,
     test_dataset = dataset_class(test_img, test_label, dataset_num_class, train=False)
 
     return local_datasets, test_dataset
+
+def modify_dataloader_input_channels(data_loader, intended_channels):
+    data, labels = next(iter(data_loader))
+    if data.ndim == 4: #image
+        if data.shape[1] > intended_channels:
+            raise ValueError(f'intended_channels must be >= than data_loader # of channels. Got {data_loader[0].shape[1]} > {intended_channels}.')
+        elif data.shape[1] < intended_channels:
+            data = np.repeat(data, intended_channels, axis=1)
+            for i, (x, y) in enumerate(data_loader):
+                if i!=0:
+                    data = torch.vstack((data, 
+                                np.repeat(x, intended_channels, axis=1)))
+                    labels = torch.cat((labels, y))
+            dataset = torch.utils.data.TensorDataset(data, labels)
+            return dataset
+    dataset = data_loader.dataset
+    return dataset
