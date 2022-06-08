@@ -298,7 +298,7 @@ def create_using_dirichlet_distr(train_img, test_img, train_label, test_label,
 
     return local_datasets, test_dataset
 
-def modify_dataloader_input_channels(data_loader, intended_channels):
+def dataset_from_dataloader(data_loader, intended_channels):
     data, labels = next(iter(data_loader))
     if data.ndim == 4: #image
         if data.shape[1] > intended_channels:
