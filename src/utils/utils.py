@@ -94,7 +94,7 @@ class WanDBSummaryWriter:
         project_name, run_name = self._generate_project_run_name(config)
         if config.wandb.restart_from_run is None:
             run_id = wandb.util.generate_id()
-            wandb.init(id=run_id, project=project_name, entity=config.wandb.entity, config ={}, tags=config.wandb.tags)
+            wandb.init(id=run_id, project=project_name, entity=config.wandb.entity, config ={}, tags=config.wandb.tags, settings=wandb.Settings(start_method="fork"))
             wandb.run.name = run_name
             self.local_store = dict()
         else:

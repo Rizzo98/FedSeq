@@ -64,12 +64,11 @@ class Task2Vec:
         if loader_opts is None:
             loader_opts = {}
         assert method in ('variational', 'montecarlo')
-        assert skip_layers >= 0
-
+        assert skip_layers >= 0  
         self.model = model
         self.num_classes = self.model.classifier.out_features
         # Fix batch norm running statistics (i.e., put batch_norm layers in eval mode)
-        self.model.train()
+        #self.model.train()
         self.device = get_device(self.model)
         self.skip_layers = skip_layers
         self.max_samples = max_samples

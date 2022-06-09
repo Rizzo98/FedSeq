@@ -67,8 +67,8 @@ def resnet18(pretrained=False, num_classes=1000):
         state_dict = model_zoo.load_url(resnet.model_urls['resnet18'])
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
         model.load_state_dict(state_dict, strict=False)
-    return model
-
+    model.train()
+    return eval_resnet_bn_layers(model)
 
 @_add_model
 def resnet34(pretrained=False, num_classes=1000):
@@ -81,7 +81,8 @@ def resnet34(pretrained=False, num_classes=1000):
         state_dict = model_zoo.load_url(resnet.model_urls['resnet34'])
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
         model.load_state_dict(state_dict, strict=False)
-    return model
+    model.train()
+    return eval_resnet_bn_layers(model)
 
 
 def get_model(model_name, pretrained=False, num_classes=1000):
@@ -89,3 +90,18 @@ def get_model(model_name, pretrained=False, num_classes=1000):
         return _MODELS[model_name](pretrained=pretrained, num_classes=num_classes)
     except KeyError:
         raise ValueError(f"Architecture {model_name} not implemented.")
+
+def eval_resnet_bn_layers(model):
+    for layer in model.layers:
+        if not hasattr(layer, '__name__') or layer.__name__!='<lambda>': #to skip lambda functions
+            if layer._get_name() == 'BatchNorm2d':
+                layer.eval()
+            elif layer._get_name() == 'Sequential':
+                for l in layer:
+                    l.bn1.eval()
+                    l.bn2.eval()
+                    if l.downsample is not None:
+                        for b in l.downsample:
+                            if b._get_name() == 'BatchNorm2d':
+                                b.eval()
+    return model
