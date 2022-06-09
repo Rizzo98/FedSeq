@@ -4,7 +4,7 @@ dataset_num_class: 100
 dataset_size: 50000
 num_exemplar: 1000
 average_accuracy_rounds: 5
-accuracy_centralized: null 
+accuracy_centralized: 55.13 
 percentages_saved: [0.7, 0.8, 0.9]
 params:
   max_iter_dirichlet: 100
