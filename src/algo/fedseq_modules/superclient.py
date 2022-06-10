@@ -38,7 +38,7 @@ class FedSeqSuperClient(Client):
         assert len(vals)==2, 'Wrong number of args'
         pos = vals[0]
         c = vals[1]
-        assert pos>0 and pos<len(self.__clients),'Incorrect position'
+        assert pos>=0 and pos<len(self.__clients),'Incorrect position'
         assert isinstance(c,Client),'Incorrect client'
         self.__clients[pos]=c
 

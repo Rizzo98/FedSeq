@@ -5,4 +5,8 @@ defaults:
 algo:
   type: fedseq_GAN_attack
   classname: FedSeqGANattack
+  params:
+    output_folder: '/home/arizzardi/GAN_attack_emnist'
+    save_images: True
+    save_loss: True
     
