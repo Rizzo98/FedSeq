@@ -8,6 +8,9 @@ from sklearn.decomposition import IncrementalPCA
 from src.algo.fed_clients.base_client import Client
 import logging
 from tqdm import tqdm
+import src.utils.aws_cv_task2vec.models as models
+import src.utils.aws_cv_task2vec.task2vec as t2v
+from src.utils.data import dataset_from_dataloader
 
 log = logging.getLogger(__name__)
 
@@ -32,25 +35,29 @@ class ClientEvaluation:
 
 
 class ClientEvaluator:
-    can_extract = ["confidence", "classifierLast", "classifierLast2", "classifierAll"]
+    can_extract = ["confidence", "classifierLast", "classifierLast2", "classifierAll", "task2vec"]
 
-    def __init__(self, exemplar_dataset, model, extract: List[str], variance_explained: float, epochs: int, *args,
-                 **kwargs):
+    def __init__(self, exemplar_dataset, model, extract: List[str], variance_explained: float, epochs: int,
+                device: str, task2vec: dict, *args, **kwargs):
         known_extraction = all(to_extract in ClientEvaluator.can_extract for to_extract in extract)
         assert known_extraction, "Unknown method to evaluate clients"
         assert 0 <= variance_explained <= 1, f"Illegal value, expected 0 <= variance_explained <= 1, given {variance_explained}"
         self.exemplar_dataset = exemplar_dataset
         self.exemplar_dataloader = DataLoader(exemplar_dataset, num_workers=0, batch_size=1)
-        self.model = model
+        self.model = model if all(to_extract != 'task2vec' for to_extract in extract) else models.get_model(task2vec.probe_network, pretrained=True, num_classes=model.num_classes).to(device=device)
         self.extract = extract
         self.variance_explained = variance_explained
         self.epochs = epochs
+        if any(to_extract == 'task2vec' for to_extract in extract):
+            self.task2vec_method = task2vec.method
+            
+        
 
     def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class, save_representers = False) -> Dict[str, ClientEvaluation]:
         evaluations = {}
         representers = {e: list() for e in self.extract}
         for client in tqdm(clients, desc='Pretraining of clients'):
-            self.__client_pre_train(client, optimizer, optimizer_args, loss_class)
+            self.__client_pre_train(client, optimizer, optimizer_args, loss_class, self.extract)
             for to_extract in self.extract:
                 client_representer = self.__get_representer(client, to_extract, save_representers)
                 representers[to_extract].append(client_representer)
@@ -60,19 +67,23 @@ class ClientEvaluator:
             evaluations[to_extract] = ClientEvaluation(reduced, to_extract)
         return evaluations
 
-    def __client_pre_train(self, client: Client, optimizer, optimizer_args, loss_class):
-        loss_fn = loss_class()
-        old_dataloader = client.dataloader
-        new_dataloader = DataLoader(old_dataloader.dataset, old_dataloader.batch_size, True,
-                                    drop_last=self.model.has_batchnorm())
-        client.dataloader = new_dataloader
-        self.__send_model(client)
-        client.client_update(optimizer, optimizer_args, self.epochs, loss_fn)
-        client.dataloader = old_dataloader
+    def __client_pre_train(self, client: Client, optimizer, optimizer_args, loss_class, extract):
+        if all(to_extract != 'task2vec' for to_extract in extract):
+            loss_fn = loss_class()
+            old_dataloader = client.dataloader
+            new_dataloader = DataLoader(old_dataloader.dataset, old_dataloader.batch_size, True,
+                                        drop_last=self.model.has_batchnorm())
+            client.dataloader = new_dataloader
+            self.__send_model(client)
+            client.client_update(optimizer, optimizer_args, self.epochs, loss_fn)
+            client.dataloader = old_dataloader
 
     def __get_representer(self, client: Client, to_extract: str, save_representers:bool) -> np.ndarray:
         if to_extract == "confidence":
             return self.__get_prediction(client, save_representers)
+        elif to_extract == "task2vec":
+            self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method)
+            return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.layers[0].in_channels)).hessian
         else:
             fc_layers = ClientEvaluator.extract_fully_connected(client.model)
             if to_extract == "classifierLast":
@@ -83,7 +94,7 @@ class ClientEvaluator:
                 return np.concatenate(fc_layers)
 
     def __reduce_representers(self, representers: List[np.ndarray], to_extract: str):
-        if self.variance_explained > 0 and to_extract != "confidence":
+        if self.variance_explained > 0 and to_extract != "confidence" and to_extract != "task2vec":
             n_components_before = len(representers[0])
             if len(representers)*n_components_before<5_000*1_000_000:
                 reducer = PCA(n_components=self.variance_explained, svd_solver='full')

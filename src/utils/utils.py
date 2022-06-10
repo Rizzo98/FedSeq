@@ -94,7 +94,7 @@ class WanDBSummaryWriter:
         project_name, run_name = self._generate_project_run_name(config)
         if config.wandb.restart_from_run is None:
             run_id = wandb.util.generate_id()
-            wandb.init(id=run_id, project=project_name, entity=config.wandb.entity, config ={}, tags=config.wandb.tags)
+            wandb.init(id=run_id, project=project_name, entity=config.wandb.entity, config ={}, tags=config.wandb.tags, settings=wandb.Settings(start_method="fork"))
             wandb.run.name = run_name
             self.local_store = dict()
         else:
@@ -129,6 +129,10 @@ class WanDBSummaryWriter:
                 if config.algo.params.clustering.classname != 'RandomClusterMaker':
                     extract = f'extract:{config.algo.params.evaluator.extract}'
                     run_name+=f'_{extract}'
+                    if config.algo.params.evaluator.extract == 'task2vec':
+                        method = 'Var' if config.algo.params.evaluator.task2vec.method=='variational' else 'MC'
+                        probe = config.algo.params.evaluator.task2vec.probe_network
+                        run_name+=f'({method}-{probe})'
                     if config.algo.params.clustering.classname != 'KMeansClusterMaker':
                         measure = f'measure:{config.algo.params.clustering.measure}'
                         run_name+=f'_{measure}'
