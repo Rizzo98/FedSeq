@@ -15,7 +15,7 @@ def create_model(cfg: DictConfig, writer) -> Algo:
         method.load_from_checkpoint()
     return method
 
-@hydra.main(config_path="config", config_name="config")
+@hydra.main(config_path="config", config_name="config",version_base='1.1')
 def main(cfg: DictConfig):
     os.chdir(cfg.root)
     seed_everything(cfg.seed)

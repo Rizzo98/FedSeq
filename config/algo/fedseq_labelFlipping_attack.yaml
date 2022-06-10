@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - fedseq
+
+algo:
+  type: fedseq_labelFlipping_attack
+  classname: FedSeqLabelFlippingAttack
+  params:
+    percentage_superclient_infected: 0.5
+    percentage_client_infected_in_superclient: 1.0
+    source_class : 5
+    target_class : 3
