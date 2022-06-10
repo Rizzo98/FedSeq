@@ -2,7 +2,7 @@ import os
 from typing import List, Tuple, Any, Callable
 import numpy as np
 from scipy.stats import wasserstein_distance
-
+from scipy.special import rel_entr
 from src.algo.fed_clients import Client
 
 import math
@@ -191,6 +191,10 @@ class InformedClusterMaker(ClusterMaker):
         v1 = cluster_vec / (cluster_vec + client_vec + 1e-8)
         v2 = client_vec / (cluster_vec + client_vec + 1e-8)
         return InformedClusterMaker.cosine_diff(v1, v2)
+
+    @staticmethod
+    def scipy_kullback(e0, e1):
+         return np.sum(rel_entr(e0,e1))
 
     def diff_measure(self) -> Callable[[np.ndarray, np.ndarray], float]:
         measures_methods = {"gini": InformedClusterMaker.gini_diff, "cosine": InformedClusterMaker.cosine_diff,

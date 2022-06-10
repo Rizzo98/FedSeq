@@ -18,7 +18,7 @@ import scipy.spatial.distance as distance
 import numpy as np
 import copy
 import pickle
-
+from scipy.special import rel_entr
 _DISTANCES = {}
 
 
@@ -182,6 +182,10 @@ def kullback(e0, e1):
         klvec = [mean_vector[i] * np.log(mean_vector[i] / uniform[i]) for i in range(mean_vector.size)]
         return 1 - (np.sum(klvec))
 
+@_register_distance
+def scipy_kullback(e0, e1):
+         return np.sum(rel_entr(e0,e1))
+
 def get_normalized_embeddings(embeddings, normalization=None):
     F = [1. / get_variance(e, normalized=False) if e is not None else None for e in embeddings]
     zero_embedding = np.zeros_like([x for x in F if x is not None][0])
@@ -237,8 +241,9 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
         plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
         plt.clf()
     plt.gcf().subplots_adjust(left=0.05)
-    sns.heatmap(distance_matrix, cmap='viridis_r', cbar=False)
-    plt.savefig(f'{savedir}/heatmap.png')
+    sns.heatmap(distance_matrix, cmap='viridis_r', cbar=False, annot=False)
+    plt.savefig(f'{savedir}/{distance}_heatmap.png')
+    plt.clf()
 
 
 
