@@ -315,6 +315,16 @@ class Task2Vec:
                 filterwise_hess = grad2.reshape(grad2.shape[0], -1).mean(axis=1)
                 hess.append(filterwise_hess)
                 scale.append(np.ones_like(filterwise_hess))
+            elif hasattr(module, 'all_weights'):
+                is_weight = [[True if 'weight' in w else False for w in l] for l in module._all_weights]
+                for i, layer in enumerate(module.all_weights):
+                    for j,w in enumerate(layer):
+                        if is_weight[i][j]:
+                            grad2 = w.grad2_acc.cpu().detach().numpy()
+                            filterwise_hess = grad2.reshape(grad2.shape[0], -1).mean(axis=1)
+                            hess.append(filterwise_hess)
+                            scale.append(np.ones_like(filterwise_hess))
+
         return Embedding(hessian=np.concatenate(hess), scale=np.concatenate(scale), meta=None)
 
 

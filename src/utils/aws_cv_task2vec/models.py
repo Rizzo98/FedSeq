@@ -16,6 +16,7 @@ import torch.utils.model_zoo as model_zoo
 
 import torchvision.models.resnet as resnet
 import torch
+import torch.nn as nn
 
 from .task2vec import ProbeNetwork
 
@@ -55,6 +56,41 @@ class ResNet(resnet.ResNet, ProbeNetwork):
             x = layer(x)
         return x
 
+class RNN(ProbeNetwork):
+    def __init__(self, num_classes, embed_size=8, hidden_size=100):
+        super(RNN,self).__init__()
+        self.embedding = nn.Embedding(num_classes, embed_size)
+        self.lstm = nn.LSTM(input_size=embed_size,hidden_size=hidden_size,num_layers=1)
+        self.fc = nn.Linear(hidden_size,num_classes)
+        self.layers = [
+            self.embedding, self.lstm, self.fc
+        ]
+
+    def forward(self,x,start_from=0):
+        x = self.embedding(x)
+        x = x.permute(1, 0, 2)
+        output, (h_, c_) = self.lstm(x)
+        last_hidden = output[-1,:,:]
+        x = self.fc(last_hidden)
+        return x
+
+    @property
+    def classifier(self):
+        return self.fc
+
+    # @ProbeNetwork.classifier.setter
+    # def classifier(self, val):
+    #     self.fc = val
+
+    # Modified forward method that allows to start feeding the cached activations from an intermediate
+    # layer of the network
+    '''
+    def forward(self, x, start_from=0):
+        """Replaces the default forward so that we can forward features starting from any intermediate layer."""
+        for layer in self.layers[start_from:]:
+            x = layer(x)
+        return '''
+
 
 @_add_model
 def resnet18(pretrained=False, num_classes=1000):
@@ -68,6 +104,7 @@ def resnet18(pretrained=False, num_classes=1000):
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
         model.load_state_dict(state_dict, strict=False)
     model.train()
+    model.in_channels = 3
     return eval_resnet_bn_layers(model)
 
 @_add_model
@@ -82,9 +119,20 @@ def resnet34(pretrained=False, num_classes=1000):
         state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
         model.load_state_dict(state_dict, strict=False)
     model.train()
+    model.in_channels = 3
     return eval_resnet_bn_layers(model)
 
-
+@_add_model
+def rnn(pretrained=False, num_classes=1000):
+    """Constructs a simple rnn model.
+    Args:
+        pretrained (bool): not implemented
+    """
+    model: ProbeNetwork = RNN(num_classes=num_classes)
+    model.train()
+    model.in_channels = None
+    return model
+    
 def get_model(model_name, pretrained=False, num_classes=1000):
     try:
         return _MODELS[model_name](pretrained=pretrained, num_classes=num_classes)

@@ -83,7 +83,7 @@ class ClientEvaluator:
             return self.__get_prediction(client, save_representers)
         elif to_extract == "task2vec":
             self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method)
-            return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.layers[0].in_channels)).hessian
+            return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.in_channels)).hessian
         else:
             fc_layers = ClientEvaluator.extract_fully_connected(client.model)
             if to_extract == "classifierLast":
