@@ -186,6 +186,10 @@ def kullback(e0, e1):
 def scipy_kullback(e0, e1):
          return np.sum(rel_entr(e0,e1))
 
+@_register_distance
+def euclidean(e0, e1):
+         return distance.euclidean(e0, e1)
+
 def get_normalized_embeddings(embeddings, normalization=None):
     F = [1. / get_variance(e, normalized=False) if e is not None else None for e in embeddings]
     zero_embedding = np.zeros_like([x for x in F if x is not None][0])
@@ -230,16 +234,18 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
     import pandas as pd
     import matplotlib.pyplot as plt
     from matplotlib import rcParams
-    rcParams['figure.figsize'] = 15,15
+    rcParams['figure.figsize'] = 19,19
     distance_matrix = pdist(embeddings, distance=distance)
     if labels is not None:
         distance_matrix = pd.DataFrame(distance_matrix, index=labels, columns=labels)
+    '''
     if distance == 'cosine' or distance == 'normalized_cosine':
         cond_distance_matrix = squareform(distance_matrix, checks=False)
         linkage_matrix = linkage(cond_distance_matrix, method='complete', optimal_ordering=True)
         sns.clustermap(distance_matrix, row_linkage=linkage_matrix, col_linkage=linkage_matrix, cmap='viridis_r')
         plt.savefig(f'{savedir}/cluster_similarity_matrix.png')
         plt.clf()
+    '''
     plt.gcf().subplots_adjust(left=0.05)
     sns.heatmap(distance_matrix, cmap='viridis_r', cbar=False, annot=False)
     plt.savefig(f'{savedir}/{distance}_heatmap.png')

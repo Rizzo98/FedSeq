@@ -4,7 +4,7 @@ import numpy as np
 from scipy.stats import wasserstein_distance
 from scipy.special import rel_entr
 from src.algo.fed_clients import Client
-
+from scipy.spatial.distance import euclidean
 import math
 import itertools as it
 from abc import ABC, abstractmethod
@@ -199,7 +199,8 @@ class InformedClusterMaker(ClusterMaker):
     def diff_measure(self) -> Callable[[np.ndarray, np.ndarray], float]:
         measures_methods = {"gini": InformedClusterMaker.gini_diff, "cosine": InformedClusterMaker.cosine_diff,
                             "kullback": InformedClusterMaker.kullback_div, "wasserstein": wasserstein_distance,
-                            "normalized_cosine": InformedClusterMaker.norm_cosine_diff}
+                            "normalized_cosine": InformedClusterMaker.norm_cosine_diff,
+                            "euclidean":euclidean}
         if self.measure not in measures_methods:
             raise NotImplementedError
         return measures_methods[self.measure]

@@ -7,6 +7,7 @@ class ShakespeareLocalDataset(Dataset):
         self.client_id = client_id
         self.x = x
         self.labels = [y_[0] for y_ in y]
+        self.num_classes = num_classes
     
     def __getitem__(self, index):
         return torch.tensor(self.x[index]), torch.tensor(self.labels[index])

@@ -1,5 +1,5 @@
 from typing import List, Dict
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import torch
 import copy
@@ -35,7 +35,7 @@ class ClientEvaluation:
 
 
 class ClientEvaluator:
-    can_extract = ["confidence", "classifierLast", "classifierLast2", "classifierAll", "task2vec"]
+    can_extract = ["confidence", "classifierLast", "classifierLast2", "classifierAll", "task2vec", "classDistribution"]
 
     def __init__(self, exemplar_dataset, model, extract: List[str], variance_explained: float, epochs: int,
                 device: str, task2vec: dict, *args, **kwargs):
@@ -56,7 +56,7 @@ class ClientEvaluator:
     def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class, save_representers = False) -> Dict[str, ClientEvaluation]:
         evaluations = {}
         representers = {e: list() for e in self.extract}
-        for client in tqdm(clients, desc='Pretraining of clients'):
+        for client in tqdm(clients[:50], desc='Pretraining of clients'):
             self.__client_pre_train(client, optimizer, optimizer_args, loss_class, self.extract)
             for to_extract in self.extract:
                 client_representer = self.__get_representer(client, to_extract, save_representers)
@@ -68,7 +68,7 @@ class ClientEvaluator:
         return evaluations
 
     def __client_pre_train(self, client: Client, optimizer, optimizer_args, loss_class, extract):
-        if all(to_extract != 'task2vec' for to_extract in extract):
+        if all((to_extract != 'task2vec' and to_extract != 'classDistribution') for to_extract in extract):
             loss_fn = loss_class()
             old_dataloader = client.dataloader
             new_dataloader = DataLoader(old_dataloader.dataset, old_dataloader.batch_size, True,
@@ -84,6 +84,8 @@ class ClientEvaluator:
         elif to_extract == "task2vec":
             self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method)
             return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.in_channels)).hessian
+        elif to_extract == "classDistribution":
+            return self.__get_class_distribution(client.dataloader.dataset)
         else:
             fc_layers = ClientEvaluator.extract_fully_connected(client.model)
             if to_extract == "classifierLast":
@@ -94,7 +96,7 @@ class ClientEvaluator:
                 return np.concatenate(fc_layers)
 
     def __reduce_representers(self, representers: List[np.ndarray], to_extract: str):
-        if self.variance_explained > 0 and to_extract != "confidence" and to_extract != "task2vec":
+        if self.variance_explained > 0 and to_extract != "confidence" and to_extract != "task2vec" and to_extract != "classDistribution":
             n_components_before = len(representers[0])
             if len(representers)*n_components_before<5_000*1_000_000:
                 reducer = PCA(n_components=self.variance_explained, svd_solver='full')
@@ -150,3 +152,10 @@ class ClientEvaluator:
                 
         conf_vector = conf_vector / np.sum(conf_vector)
         return conf_vector
+    
+    def __get_class_distribution(self, dataset: Dataset):
+        num_classes = dataset.num_classes
+        labels = np.array(dataset.labels)
+        return np.bincount(labels, minlength=num_classes)/len(labels)
+        
+
