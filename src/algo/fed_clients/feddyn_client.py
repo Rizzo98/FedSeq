@@ -49,7 +49,7 @@ class FedDynClient(Client):
                 loss -= linear_p
                 loss += self.alpha / 2. * quadratic_p
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(),8.0)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(),30)
                 optimizer.step()
 
                 for prev_grads, new_params, prev_params in zip(self.prev_grads, self.model.parameters(),

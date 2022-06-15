@@ -56,7 +56,7 @@ class ClientEvaluator:
     def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class, save_representers = False) -> Dict[str, ClientEvaluation]:
         evaluations = {}
         representers = {e: list() for e in self.extract}
-        for client in tqdm(clients[:50], desc='Pretraining of clients'):
+        for client in tqdm(clients, desc='Pretraining of clients'):
             self.__client_pre_train(client, optimizer, optimizer_args, loss_class, self.extract)
             for to_extract in self.extract:
                 client_representer = self.__get_representer(client, to_extract, save_representers)
