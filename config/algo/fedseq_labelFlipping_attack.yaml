@@ -8,5 +8,6 @@ algo:
   params:
     percentage_superclient_infected: 0.5
     percentage_client_infected_in_superclient: 1.0
-    source_class : 5
-    target_class : 3
+    scramble_method: "random" #random vs fixed
+    scrambled_classes : [3,5,0,2]
+
