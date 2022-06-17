@@ -1,4 +1,4 @@
-from src.algo import FedSeq
+from src.algo import FedAvg
 from src.algo.fed_clients import FedAvgClient
 from src.algo.fedseq_modules.superclient import FedSeqSuperClient
 import numpy as np
@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from torchvision.utils import make_grid, save_image
 from matplotlib import pyplot as plt
 import os
+import json
 from src.datasets.cifar import CifarLocalDataset
 from src.models.GAN_models import Cifar10Generator, Cifar10Discriminator, EmnistGenerator, EmnistDiscriminator
 
@@ -161,7 +162,9 @@ class Attacker(FedAvgClient):
             D_loss_fake_storage.append(np.mean(D_loss_fake_batch))
             G_loss_storage.append(np.mean(G_loss_batch))
 
-        os.mkdir(f'{self.__attack_folder}/round_{self.round}')
+        if not os.path.isdir(f'{self.__attack_folder}/round_{self.round}'):
+            os.mkdir(f'{self.__attack_folder}/round_{self.round}')
+
         reconstructed_images = self.G(self.__fixed_noise)
         
         if self.__save_loss:
@@ -196,7 +199,7 @@ class Attacker(FedAvgClient):
         super().client_update(optimizer, optimizer_args, local_epoch, loss_fn)
 
 
-class FedSeqGANattack(FedSeq):
+class FedAvgGANattack(FedAvg):
     def __init__(self, model_info, params, device: str, dataset, output_suffix: str, savedir: str, writer=None, wandbConf=None):
         super().__init__(model_info, params, device, dataset, output_suffix, savedir, writer, wandbConf)
         G_class, D_class = self.__get_GAN_classes()
@@ -204,22 +207,42 @@ class FedSeqGANattack(FedSeq):
         self.__saveImages = params['save_images']
         self.__saveLoss = params['save_loss']
         self.__saveDataset = params['save_dataset_explicit']
-        sc, c, pos = self.__injectAttacker(G_class, D_class, self.__outputFolder, self.__saveImages, self.__saveLoss, self.__saveDataset)
-        self.attacker.original_data = sc.clients[pos-1].dataloader.dataset
+        self.__save_dataset_per_client = params['save_dataset_per_client']
+        self.__save_client_selection = params['save_client_selection']
+        self.__save_client_distribution = params['save_client_distribution']
+        self.__save_attacker = params['save_attacker']
+        
+        c, pos = self.__injectAttacker(G_class, D_class, self.__outputFolder, self.__saveImages, self.__saveLoss, self.__saveDataset)
+        if self.__save_attacker:
+            json.dump({'Attacker_id':c.client_id, 'Position':int(pos)},open(f'{self.__outputFolder}/Attacker.json','w'))
+        
+        self.attacker.original_data = self.clients[pos-1].dataloader.dataset
         all_data = []
-        for s in self.superclients:
-            all_data += [x.dataloader.dataset for x in s.clients]
+        if self.__save_client_selection:
+            self.client_selection = dict()
+        if self.__save_dataset_per_client:
+                os.mkdir(f'{self.__outputFolder}/datasetsPerClient')
+        
+        if self.__save_client_distribution: clients_distribution = dict()
+
+        for c_ in self.clients: 
+            all_data += c_.dataloader.dataset
+            if self.__save_client_distribution: clients_distribution[c_.client_id] = list(c_.num_ex_per_class())
+            if self.__save_dataset_per_client:
+                os.mkdir(f'{self.__outputFolder}/datasetsPerClient/Client{c_.client_id}')
+                for i,(img,_) in enumerate(c_.dataloader.dataset): 
+                    save_image(img,f'{self.__outputFolder}/datasetsPerClient/Client{c_.client_id}/Image{i}.png',normalize=True)
         self.attacker.all_data = all_data
-        log.info(f'Injected attacker on superclient {sc.client_id} at pos {pos}, client id: {c.client_id}')
+        if self.__save_client_distribution: json.dump(clients_distribution,open(f'{self.__outputFolder}/clients_distribution.json','w'))
+        log.info(f'Injected attacker on client {c.client_id} at pos {pos}')
 
     def __injectAttacker(self, G_class, D_class, outputFolder, saveImages, saveLoss, saveDataset):
-        superclient : FedSeqSuperClient = np.random.choice(self.superclients,1)[0]
-        # superclient : FedSeqSuperClient = self.superclients[0]
-        pos = np.random.choice(range(1,len(superclient.clients)),1)[0]
-        client = superclient.clients[pos]
+        client_pos = np.random.choice(list(range(1,len(self.clients))),1)[0]
+        # client_pos = 0
+        client : FedAvgClient = self.clients[client_pos]
         self.attacker = Attacker(client.client_id,client.dataloader,G_class,D_class,outputFolder,saveImages,saveLoss,saveDataset,client.num_classes,client.device,client.dp)
-        superclient.clients = (pos, self.attacker)
-        return superclient, client, pos
+        self.clients[client_pos] = self.attacker
+        return client, client_pos
     
     def __get_GAN_classes(self):
         if self.dataset.name=='cifar10':
@@ -232,18 +255,16 @@ class FedSeqGANattack(FedSeq):
         self.attacker.discriminator_accuracy = self.result['accuracy']
         self.attacker.discriminator_accuracy_class_attacked = self.result['accuracy_class']
         
-        # n_sample = max(int(self.fraction * self.num_superclients), 1)
-        # sample_set = np.random.choice(range(1,self.num_superclients), n_sample-1, replace=False)
-        # self.selected_clients = [self.superclients[0]]+[self.superclients[k] for k in iter(sample_set)]
+        # n_sample = max(int(self.fraction * self.num_clients), 1)
+        # sample_set = self.dropping(np.random.choice(range(1,self.num_clients), n_sample-1, replace=False))
+        # self.selected_clients = [self.clients[0]]+[self.clients[k] for k in iter(sample_set)]
         # self.send_data(self.selected_clients)
-
-        # for c in tqdm(self.selected_clients, desc=f'Training of selected superclients @ round {self._round}'):
-        #     c.client_update(self.optimizer, self.optimizer_args, self.training.sequential_rounds, self.loss_fn)
-
-        # if self.training.check_forgetting:
-        #     round_fg_stats = {}
-        #     for c in self.selected_clients:
-        #         round_fg_stats[c.client_id] = c.forgetting_stats
-        #     self.result["forgetting_stats"].append(round_fg_stats)
+        
+        # for c in tqdm(self.selected_clients, desc=f'Training of selected clients @ round {self._round}'):
+        #     c.client_update(self.optimizer, self.optimizer_args,
+        #                     self.local_epoch, self.loss_fn)
 
         super().train_step()
+        if self.__save_client_selection:
+            self.client_selection[self._round] = [ c.client_id for c in self.selected_clients]
+            json.dump(self.client_selection,open(f'{self.__outputFolder}/client_selection.json','w'))
