@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader
 from src.algo import Algo
 from src.algo.fed_clients.base_client import Client
 
-
 class FedAvgClient(Client):
 
     def __init__(self, client_id: int, dataloader: Optional[DataLoader], num_classes=None, device="cpu", dp=None):
@@ -23,7 +22,7 @@ class FedAvgClient(Client):
         for _ in range(local_epoch):
             Algo.train(self.model, self.device, optimizer, loss_fn, self.dataloader)
         self.model.to('cpu')
-
+        
     def client_update_distillation(self, optimizer, optimizer_args, local_epoch, loss_fn):
         self.model.to(self.device)
         loss_fn.to(self.device)

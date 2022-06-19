@@ -1,0 +1,17 @@
+# @package _global_
+defaults:
+  - fedavg
+
+algo:
+  type: fedavg_GAN_attack
+  classname: FedAvgGANattack
+  params:
+    params:
+    output_folder: '/home/arizzardi/FedAvg_explicitCifar'
+    save_attacker: True
+    save_dataset_explicit: True
+    save_images: False
+    save_loss: False
+    save_dataset_per_client: True
+    save_client_selection: True
+    save_client_distribution: True

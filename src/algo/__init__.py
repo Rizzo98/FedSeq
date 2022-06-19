@@ -3,7 +3,9 @@ from src.algo.fedbase import FedBase
 from src.algo.fedavg import FedAvg
 from src.algo.fedseq import FedSeq
 from src.algo.fedseq_LabelFlippingAttack import FedSeqLabelFlippingAttack
+from src.algo.fedavg_LabelFlippingAttack import FedAvgLabelFlippingAttack
 from src.algo.fedseq_GANattack import FedSeqGANattack
+from src.algo.fedavg_GANattack import FedAvgGANattack
 from src.algo.fedseq_dynamic import FedSeqDynamic
 from src.algo.centralized import Centralized
 from src.algo.fedseq_inter import FedSeqInter

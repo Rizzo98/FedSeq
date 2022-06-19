@@ -23,7 +23,7 @@ class SCAFFOLDCenterServer(FedAvgCenterServer):
         return SCAFFOLDCenterServer(server.model, server.dataloader, server.device, num_clients)
 
     def aggregation(self, clients: List[SCAFFOLDClient], aggregation_weights: List[float], round:int):
-        super().aggregation(clients, aggregation_weights)
+        super().aggregation(clients, aggregation_weights, round)
         for c in clients:
             delta_c = c.delta_controls()
             for sc, d in zip(self.server_controls, delta_c):

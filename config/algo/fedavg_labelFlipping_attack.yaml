@@ -1,0 +1,11 @@
+# @package _global_
+defaults:
+  - fedavg
+
+algo:
+  type: fedavg_labelFlipping_attack
+  classname: FedAvgLabelFlippingAttack
+  params:
+    percentage_client_infected: 0.5
+    scramble_method: "random" #random vs fixed
+    scrambled_classes : [3,5,0,2]
