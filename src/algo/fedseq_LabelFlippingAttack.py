@@ -1,3 +1,4 @@
+import random
 from typing import List
 from math import floor
 from src.utils.utils import WanDBSummaryWriter
@@ -17,6 +18,7 @@ class FedSeqLabelFlippingAttack(FedSeq):
         self.percentage_client_infected_in_superclient = params['percentage_client_infected_in_superclient']
         self.scramble_method = params['scramble_method']
         self.scrambled_classes = params['scrambled_classes']
+        self.constraints = params['constraints']
 
         assert self.scramble_method in ['random','fixed'], 'Wrong scramble method!'
         assert len(self.scrambled_classes)>1 and len(self.scrambled_classes)<=self.dataset_num_classes, 'Wrong number of classes'
@@ -29,9 +31,25 @@ class FedSeqLabelFlippingAttack(FedSeq):
         log.info(f'Superclients infested : {superclients_ids}, attackers ids : {clients_ids}')
 
     def __createScramblePairs(self):
-        shifted_list = list(np.roll(np.array(self.scrambled_classes),np.random.randint(1,len(self.scrambled_classes))))
-        return [(self.scrambled_classes[i],shifted_list[i]) for i in range(len(self.scrambled_classes))]
-
+        assert len(self.scrambled_classes)%2==0, 'Scrambled classes must be even!'
+        assert all([len(c)%2==0 for c in self.constraints]), 'Some constraint is not even!'
+        scrambled_pairs = []
+        for c in self.scrambled_classes:
+            if all([c not in t for t in scrambled_pairs]):
+                classes_bucket = set(self.scrambled_classes)
+                classes_bucket.discard(c)
+                for c1,c2 in scrambled_pairs: classes_bucket.discard(c1); classes_bucket.discard(c2)
+                constraints = [l for l in self.constraints if c in l]
+                if len(constraints)>0:
+                    for c_ in self.scrambled_classes:
+                        if all([c_ not in cons for cons in constraints]): classes_bucket.discard(c_)
+                if len(classes_bucket)==0: raise ValueError('No scrambling possible!')
+                chosen = random.choice(tuple(classes_bucket))
+                classes_bucket.remove(chosen)
+                scrambled_pairs.append((c,chosen))
+                if len(scrambled_pairs)==int(len(self.scrambled_classes)/2): break
+        return scrambled_pairs
+        
     def __injectAttacker(self):
         number_superclients = max(1,floor(len(self.superclients)*self.percentage_superclient_infected))
         superclients : List[FedSeqSuperClient] = np.random.choice(self.superclients,number_superclients,replace=False)
@@ -62,10 +80,10 @@ class FedSeqLabelFlippingAttack(FedSeq):
                 flips_table[counter]+=attacker.total_flips
                 counter+=1
 
-        columns = ['Superclient_id','Attacker_id']+[f'Scramble {i}' for i in range(len(self.scrambled_classes))]
+        columns = ['Superclient_id','Attacker_id']+[f'Scramble {i}' for i in range(len(self.scrambled_classes)//2)]
         self.writer.add_table(scramble_table,columns,'Scrambling classes')
 
-        columns = ['Superclient_id','Attacker_id']+[f'# of scrambling {i}' for i in range(len(self.scrambled_classes))]
+        columns = ['Superclient_id','Attacker_id']+[f'# of scrambling {i}' for i in range(len(self.scrambled_classes)//2)]
         self.writer.add_table(flips_table,columns,'# of scrambling')
 
         return superclients_ids, clients_ids
@@ -73,6 +91,9 @@ class FedSeqLabelFlippingAttack(FedSeq):
     def train_step(self):
         super().train_step()
         writer : WanDBSummaryWriter =  self.writer
+        avg = 0
         for c in self.scrambled_classes:
             acc = self.result['accuracy_class'][-1][c].item()
+            avg+=acc
             writer.add_scalar(f'Acc class {c}', acc, self._round)
+        writer.add_scalar('Avg scrambled classes',avg/len(self.scrambled_classes),self._round)
