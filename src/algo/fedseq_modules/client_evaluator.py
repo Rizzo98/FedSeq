@@ -50,13 +50,14 @@ class ClientEvaluator:
         self.epochs = epochs
         if any(to_extract == 'task2vec' for to_extract in extract):
             self.task2vec_method = task2vec.method
+            self.task2vec_pn = task2vec.probe_network
             
         
 
     def evaluate(self, clients: List[Client], optimizer, optimizer_args, loss_class, save_representers = False) -> Dict[str, ClientEvaluation]:
         evaluations = {}
         representers = {e: list() for e in self.extract}
-        for client in tqdm(clients[:50], desc='Pretraining of clients'):
+        for client in tqdm(clients, desc='Pretraining of clients'):
             self.__client_pre_train(client, optimizer, optimizer_args, loss_class, self.extract)
             for to_extract in self.extract:
                 client_representer = self.__get_representer(client, to_extract, save_representers)
@@ -68,7 +69,7 @@ class ClientEvaluator:
         return evaluations
 
     def __client_pre_train(self, client: Client, optimizer, optimizer_args, loss_class, extract):
-        if all((to_extract != 'task2vec' and to_extract != 'classDistribution') for to_extract in extract):
+        if all(((to_extract != 'task2vec' and to_extract != 'classDistribution') or (to_extract == 'task2vec' and self.task2vec_pn == 'rnn')) for to_extract in extract):
             loss_fn = loss_class()
             old_dataloader = client.dataloader
             new_dataloader = DataLoader(old_dataloader.dataset, old_dataloader.batch_size, True,
@@ -82,7 +83,10 @@ class ClientEvaluator:
         if to_extract == "confidence":
             return self.__get_prediction(client, save_representers)
         elif to_extract == "task2vec":
-            self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method)
+            if self.task2vec_pn != 'rnn':
+                self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method)
+            else:
+                self.task2vec = t2v.Task2Vec(client.model, max_samples=None, method=self.task2vec_method, classifier_opts={'epochs':0})
             return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.in_channels)).hessian
         elif to_extract == "classDistribution":
             return self.__get_class_distribution(client.dataloader.dataset)

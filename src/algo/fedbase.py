@@ -28,6 +28,7 @@ class FedBase(Algo):
         self.batch_size = B
         self.fraction = C
         self.local_epoch = E
+        self.alpha = alpha
         self.dataset_num_classes = dataset.dataset_num_class
         self.aggregation_policy = params.aggregation_policy
         self.save_checkpoint_period = params.save_checkpoint_period

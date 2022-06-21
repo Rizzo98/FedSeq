@@ -51,4 +51,4 @@ class FedSeqInter(FedSeq):
     def aggregate(self, clients):
         total_weight = np.sum(self.models_num_examples)
         weights = [w / total_weight for w in self.models_num_examples]
-        self.center_server.aggregation(clients, weights)
+        self.center_server.aggregation(clients, weights, self._round)

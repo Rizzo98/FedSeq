@@ -73,6 +73,12 @@ class RNN(ProbeNetwork):
         last_hidden = output[-1,:,:]
         x = self.fc(last_hidden)
         return x
+    
+    def has_batchnorm(self):
+        for m in self.modules():
+            if isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                return True
+        return False
 
     @property
     def classifier(self):
