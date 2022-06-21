@@ -67,14 +67,13 @@ class ClientCluster:
 
 class ClusterMaker(ABC):
     def __init__(self, min_examples: int, max_clients: int, save_statistics: bool, savedir: str,
-                    alpha: float, measure: str = None, verbose: bool = False, *args, **kwargs):
+                    measure: str = None, verbose: bool = False, *args, **kwargs):
         self._min_examples = min_examples
         self._max_clients = max_clients
         self._save_statistics = save_statistics
         self._savedir = savedir
         self._measure = measure
         self.verbose = verbose
-        self.alpha = alpha
         self._statistics = {}
 
     @property
@@ -160,7 +159,7 @@ class ClusterMaker(ABC):
         return num_superclients
 
     def _save_tsne(self, clients, representers, superclients):
-        if self.alpha == 0 and isinstance(clients[0].dataloader.dataset, CifarLocalDataset):
+        if  isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and all((len(np.unique(c.dataloader.dataset.labels))==1) for c in clients):
             representers = np.array(representers)
             clients_superclients = np.zeros(len(clients))
             for s in superclients:
