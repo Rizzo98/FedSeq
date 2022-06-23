@@ -9,5 +9,40 @@ algo:
     percentage_superclient_infected: 0.5
     percentage_client_infected_in_superclient: 1.0
     scramble_method: "random" #random vs fixed
-    scrambled_classes : [3,5,0,2]
+    scrambled_classes : [1,73,32,67,54,62,70,82,6,7,14,18,8,13,90,48,2,11,35,98]
+    constraints: [[1,73,32,67],[54,62,70,82],[6,7,14,18],[8,13,90,48],[2,11,35,98]]
 
+# coarse label: fish
+# fine labels:
+# aquarium_fish(id:1)
+# shark(id:73)
+# flatfish(id:32)
+# ray(id:67)
+# ----------------------------
+# coarse label: flowers
+# fine labels:
+# orchid(id:54)
+# poppy(id:62)
+# rose(id:70)
+# sunflower(id:82)
+# ----------------------------
+# coarse label: insects
+# fine labels:
+# bee(id:6)
+# beetle(id:7)
+# butterfly(id:14)
+# caterpillar(id:18)
+# ----------------------------
+# coarse label: vehicles 1
+# fine labels:
+# bicycle(id:8)
+# bus(id:13)
+# train(id:90)
+# motorcycle(id:48)
+# ----------------------------
+# coarse label: people
+# fine labels.
+# baby(id:2)
+# boy(id:11)
+# girl(id:35)
+# wiman(id:98)

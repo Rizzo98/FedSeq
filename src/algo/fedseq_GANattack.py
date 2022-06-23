@@ -1,3 +1,4 @@
+import json
 from src.algo import FedSeq
 from src.algo.fed_clients import FedAvgClient
 from src.algo.fedseq_modules.superclient import FedSeqSuperClient
@@ -204,12 +205,39 @@ class FedSeqGANattack(FedSeq):
         self.__saveImages = params['save_images']
         self.__saveLoss = params['save_loss']
         self.__saveDataset = params['save_dataset_explicit']
+        self.__save_dataset_per_client = params['save_dataset_per_client']
+        self.__save_client_selection = params['save_client_selection']
+        self.__save_client_distribution = params['save_client_distribution']
+        self.__save_superclient_composition = params['save_superclient_composition']
+        self.__save_attacker = params['save_attacker']
         sc, c, pos = self.__injectAttacker(G_class, D_class, self.__outputFolder, self.__saveImages, self.__saveLoss, self.__saveDataset)
+        
+        if self.__save_attacker:
+            json.dump({'Attacker_id':c.client_id, 'Superclient_id':sc.client_id ,'Position':int(pos)},open(f'{self.__outputFolder}/Attacker.json','w'))
+        
+        if self.__save_superclient_composition:
+            sc_comp = dict()
+            for s in self.superclients:
+                sc_comp[s.client_id] = [c.client_id for c in s.clients]
+            json.dump(sc_comp,open(f'{self.__outputFolder}/SuperclientsComposition.json','w'))
+
         self.attacker.original_data = sc.clients[pos-1].dataloader.dataset
+
+        if self.__save_client_selection: self.client_selection = dict()
+        if self.__save_dataset_per_client: os.mkdir(f'{self.__outputFolder}/datasetsPerClient')
+        if self.__save_client_distribution: clients_distribution = dict()
+
         all_data = []
         for s in self.superclients:
-            all_data += [x.dataloader.dataset for x in s.clients]
+            for c in s.clients:
+                all_data += c.dataloader.dataset
+                if self.__save_client_distribution: clients_distribution[c.client_id] = list(c.num_ex_per_class())
+                if self.__save_dataset_per_client: 
+                    os.mkdir(f'{self.__outputFolder}/datasetsPerClient/Client{c.client_id}')
+                    for i,(img,_) in enumerate(c.dataloader.dataset): 
+                        save_image(img,f'{self.__outputFolder}/datasetsPerClient/Client{c.client_id}/Image{i}.png',normalize=True)
         self.attacker.all_data = all_data
+        if self.__save_client_distribution: json.dump(clients_distribution,open(f'{self.__outputFolder}/clients_distribution.json','w'))
         log.info(f'Injected attacker on superclient {sc.client_id} at pos {pos}, client id: {c.client_id}')
 
     def __injectAttacker(self, G_class, D_class, outputFolder, saveImages, saveLoss, saveDataset):
@@ -247,3 +275,8 @@ class FedSeqGANattack(FedSeq):
         #     self.result["forgetting_stats"].append(round_fg_stats)
 
         super().train_step()
+        if self.__save_client_selection:
+            self.client_selection[self._round] = []
+            for s in self.selected_clients:
+                self.client_selection[self._round]+=[c.client_id for c in s.clients]
+            json.dump(self.client_selection,open(f'{self.__outputFolder}/client_selection.json','w'))
