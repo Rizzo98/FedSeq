@@ -3,7 +3,7 @@ from typing import List
 from math import floor
 from src.utils.utils import WanDBSummaryWriter
 from src.algo import FedSeq
-from src.algo.fed_clients import FedAvgClient
+from src.algo.fed_clients import FedAvgClient, Client
 from src.algo.fedseq_modules.superclient import FedSeqSuperClient
 from src.algo.fedavg_LabelFlippingAttack import Attacker
 import numpy as np
@@ -49,7 +49,14 @@ class FedSeqLabelFlippingAttack(FedSeq):
                 scrambled_pairs.append((c,chosen))
                 if len(scrambled_pairs)==int(len(self.scrambled_classes)/2): break
         return scrambled_pairs
-        
+
+    def __isSuitable(self, c:Client):
+        classes = c.num_ex_per_class()
+        is_suitable=False
+        for cl in self.scrambled_classes:
+            if classes[cl]>0: is_suitable=True
+        return is_suitable
+
     def __injectAttacker(self):
         number_superclients = max(1,floor(len(self.superclients)*self.percentage_superclient_infected))
         superclients : List[FedSeqSuperClient] = np.random.choice(self.superclients,number_superclients,replace=False)
@@ -64,8 +71,9 @@ class FedSeqLabelFlippingAttack(FedSeq):
 
         counter=0
         for s in superclients:
-            number_clients = max(1,floor(len(s.clients)*self.percentage_client_infected_in_superclient))
-            positions = np.random.choice(range(len(s.clients)),number_clients,replace=False)
+            suitable_clients = [c for c in s.clients if self.__isSuitable(c)]
+            number_clients = max(1,floor(len(suitable_clients)*self.percentage_client_infected_in_superclient))
+            positions = np.random.choice(range(len(suitable_clients)),number_clients,replace=False)
             for p in positions:
                 client : FedAvgClient = s.clients[p]
                 if self.scramble_method == 'random': scrambled_classes = self.__createScramblePairs()

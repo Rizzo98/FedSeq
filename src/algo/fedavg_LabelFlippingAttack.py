@@ -1,8 +1,7 @@
 from math import floor
-
 from src.utils.utils import WanDBSummaryWriter
 from src.algo import FedAvg
-from src.algo.fed_clients import FedAvgClient
+from src.algo.fed_clients import FedAvgClient,Client
 import numpy as np
 import logging
 import random
@@ -65,10 +64,18 @@ class FedAvgLabelFlippingAttack(FedAvg):
                 scrambled_pairs.append((c,chosen))
                 if len(scrambled_pairs)==int(len(self.scrambled_classes)/2): break
         return scrambled_pairs
-        
+    
+    def __isSuitable(self, c:Client):
+        classes = c.num_ex_per_class()
+        is_suitable=False
+        for cl in self.scrambled_classes:
+            if classes[cl]>0: is_suitable=True
+        return is_suitable
+
     def __injectAttacker(self):
-        number_clients = max(1,floor(len(self.clients)*self.percentage_client_infected))
-        clients_pos : List[FedAvgClient] = np.random.choice(list(range(len(self.clients))), number_clients,replace=False)
+        suitable_clients = [c for c in self.clients if self.__isSuitable(c)]
+        number_clients = max(1,floor(len(suitable_clients)*self.percentage_client_infected))
+        clients_pos : List[FedAvgClient] = np.random.choice(list(range(len(suitable_clients))), number_clients,replace=False)
         clients_ids = []
 
         scramble_table = [[] for _ in range(number_clients)]
@@ -77,7 +84,7 @@ class FedAvgLabelFlippingAttack(FedAvg):
         if self.scramble_method == 'fixed': scrambled_classes = self.__createScramblePairs() 
 
         for i,p in enumerate(clients_pos):
-            client : FedAvgClient = self.clients[p]
+            client : FedAvgClient = suitable_clients[p]
             if self.scramble_method == 'random': scrambled_classes = self.__createScramblePairs()
             attacker = Attacker(client.client_id, scrambled_classes, client.dataloader, client.num_classes, client.device, client.dp)
             scramble_table[i] += [attacker.client_id]
@@ -85,7 +92,7 @@ class FedAvgLabelFlippingAttack(FedAvg):
             flips_table[i] += [attacker.client_id]
             flips_table[i] += attacker.total_flips
             clients_ids.append(client.client_id)
-            self.clients[p] = attacker
+            suitable_clients[p] = attacker
 
         columns = ['Attacker_id']+[f'Scramble {i}' for i in range(len(self.scrambled_classes)//2)]
         self.writer.add_table(scramble_table,columns,'Scrambling classes')
