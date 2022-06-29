@@ -236,7 +236,7 @@ class InformedClusterMaker(ClusterMaker):
     def scipy_kullback(cluster_vec: np.ndarray, client_vec: np.ndarray) -> float:
         mean_vector = (cluster_vec + client_vec) / 2
         uniform = np.ones(mean_vector.size) / mean_vector.size
-        return np.sum(rel_entr(mean_vector,uniform))
+        return 1 - np.sum(rel_entr(mean_vector,uniform))
 
     def diff_measure(self) -> Callable[[np.ndarray, np.ndarray], float]:
         measures_methods = {"gini": InformedClusterMaker.gini_diff, "cosine": InformedClusterMaker.cosine_diff,
