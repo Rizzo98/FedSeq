@@ -67,13 +67,14 @@ class ClientCluster:
 
 class ClusterMaker(ABC):
     def __init__(self, min_examples: int, max_clients: int, save_statistics: bool, savedir: str,
-                    measure: str = None, verbose: bool = False, *args, **kwargs):
+                    measure: str = None, verbose: bool = False, save_visualization: bool = False, *args, **kwargs):
         self._min_examples = min_examples
         self._max_clients = max_clients
         self._save_statistics = save_statistics
         self._savedir = savedir
         self._measure = measure
         self.verbose = verbose
+        self._save_visualization = save_visualization
         self._statistics = {}
 
     @property
@@ -159,40 +160,41 @@ class ClusterMaker(ABC):
         return num_superclients
 
     def _save_tsne(self, clients, representers, superclients):
-        if  isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and all((len(np.unique(c.dataloader.dataset.labels))==1) for c in clients):
-            representers = np.array(representers)
-            clients_superclients = np.zeros(len(clients))
-            for s in superclients:
-                for c in s.clients:
-                    clients_superclients[c.client_id] = s.client_id
-            clients_class = np.array([c.dataloader.dataset.labels[0] for c in clients])
-            '''
-            if representers.shape[1] > 50:
-                reducer = PCA(n_components=50, svd_solver='full')
-                representers = reducer.fit_transform(representers)
-            '''
-            X = TSNE(n_components=2, learning_rate='auto',init='random').fit_transform(representers)
-            (fig, subplots) = plt.subplots(2, figsize=(15, 15))
-            ax = subplots[0]
-            ax.set_title("representers vs single class seen")
-            colors = cm.rainbow(np.linspace(0, 1, clients[0].dataloader.dataset.num_classes))
-            for class_id, color in zip(range(clients[0].dataloader.dataset.num_classes), colors):
-                ids_of_class = np.array([True if cc == class_id else False for cc in clients_class])
-                ax.scatter(X[ids_of_class, 0], X[ids_of_class, 1], color=color)
-                ax.xaxis.set_major_formatter(NullFormatter())
-                ax.yaxis.set_major_formatter(NullFormatter())
-            ax.axis("tight")
-            ax = subplots[1]
-            ax.set_title("representers vs superclient assigned to")
-            colors = cm.rainbow(np.linspace(0, 1, len(superclients)))
-            for superclient_id, color in zip(range(len(superclients)), colors):
-                ids_of_sc = np.array([True if sc == superclient_id else False for sc in clients_superclients])
-                ax.scatter(X[ids_of_sc, 0], X[ids_of_sc, 1], color=color)
-                ax.xaxis.set_major_formatter(NullFormatter())
-                ax.yaxis.set_major_formatter(NullFormatter())
-            ax.axis("tight")
-            plt.savefig(f'{self._savedir}/class_vs_superclient_viz.png')
-            plt.clf()
+        if self._save_visualization and representers is not None:
+            if  isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and all((len(np.unique(c.dataloader.dataset.labels))==1) for c in clients):
+                representers = np.array(representers)
+                clients_superclients = np.zeros(len(clients))
+                for s in superclients:
+                    for c in s.clients:
+                        clients_superclients[c.client_id] = s.client_id
+                clients_class = np.array([c.dataloader.dataset.labels[0] for c in clients])
+                '''
+                if representers.shape[1] > 50:
+                    reducer = PCA(n_components=50, svd_solver='full')
+                    representers = reducer.fit_transform(representers)
+                '''
+                X = TSNE(n_components=2, learning_rate='auto',init='random').fit_transform(representers)
+                (fig, subplots) = plt.subplots(2, figsize=(15, 15))
+                ax = subplots[0]
+                ax.set_title("representers vs single class seen")
+                colors = cm.rainbow(np.linspace(0, 1, clients[0].dataloader.dataset.num_classes))
+                for class_id, color in zip(range(clients[0].dataloader.dataset.num_classes), colors):
+                    ids_of_class = np.array([True if cc == class_id else False for cc in clients_class])
+                    ax.scatter(X[ids_of_class, 0], X[ids_of_class, 1], color=color)
+                    ax.xaxis.set_major_formatter(NullFormatter())
+                    ax.yaxis.set_major_formatter(NullFormatter())
+                ax.axis("tight")
+                ax = subplots[1]
+                ax.set_title("representers vs superclient assigned to")
+                colors = cm.rainbow(np.linspace(0, 1, len(superclients)))
+                for superclient_id, color in zip(range(len(superclients)), colors):
+                    ids_of_sc = np.array([True if sc == superclient_id else False for sc in clients_superclients])
+                    ax.scatter(X[ids_of_sc, 0], X[ids_of_sc, 1], color=color)
+                    ax.xaxis.set_major_formatter(NullFormatter())
+                    ax.yaxis.set_major_formatter(NullFormatter())
+                ax.axis("tight")
+                plt.savefig(f'{self._savedir}/class_vs_superclient_viz.png')
+                plt.clf()
 
 class InformedClusterMaker(ClusterMaker):
     def __init__(self, measure, *args, **kwargs):

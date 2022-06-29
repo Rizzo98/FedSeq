@@ -19,6 +19,7 @@ algo:
       measure: cosine
       save_statistics: False
       verbose: False
+      save_visualization: False
     evaluator:
       precomputed: null #path to representers or null
       extract_eval : []
