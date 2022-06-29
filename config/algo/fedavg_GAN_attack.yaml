@@ -6,8 +6,10 @@ algo:
   type: fedavg_GAN_attack
   classname: FedAvgGANattack
   params:
-    params:
-    output_folder: '/home/arizzardi/FedAvg_explicitCifar'
+    GAN_train_epochs: 300
+    GAN_n_fake_images: 5000
+    GAN_save_after_n_rounds: 100
+    output_folder: '/home/arizzardi/FedAvg_GAN_attack_bigReconstruction'
     save_attacker: True
     save_dataset_explicit: True
     save_images: False
@@ -15,3 +17,4 @@ algo:
     save_dataset_per_client: True
     save_client_selection: True
     save_client_distribution: True
+    save_accuracy: True
