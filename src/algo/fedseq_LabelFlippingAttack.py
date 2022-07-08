@@ -58,35 +58,56 @@ class FedSeqLabelFlippingAttack(FedSeq):
         return is_suitable
 
     def __injectAttacker(self):
-        number_superclients = max(1,floor(len(self.superclients)*self.percentage_superclient_infected))
-        superclients : List[FedSeqSuperClient] = np.random.choice(self.superclients,number_superclients,replace=False)
-        superclients_ids = [s.client_id for s in superclients]
-        total_number_clients = sum([max(1,floor(len(s.clients)*self.percentage_client_infected_in_superclient)) for s in superclients])
-        clients_ids = []
+        if self.alpha==0:
+            superclients_ids = []
+            clients_ids = []
+            tot_ex_per_scrambled_class = dict([(c,0) for c in self.scrambled_classes])
+            example_per_class = 0
+            if self.dataset.name == 'cifar10': example_per_class = 5_000
+            assert example_per_class>0, 'dataset not implemented!'
+            for s in self.superclients:
+                n_selected_clients = 0
+                for c in s.clients:
+                    class_id = list(map(lambda x:x>0,c.num_ex_per_class())).index(True)
+                    if class_id in self.scrambled_classes and\
+                     (n_selected_clients+1)/len(s.clients)<=self.percentage_client_infected_in_superclient and \
+                     tot_ex_per_scrambled_class[class_id]+c.num_ex_per_class()[class_id]<=example_per_class*self.percentage_superclient_infected:
+                        tot_ex_per_scrambled_class[class_id]+=c.num_ex_per_class()[class_id]
+                        n_selected_clients+=1
+                        superclients_ids.append(s.client_id)
+                        clients_ids.append(c.client_id)
+        else:
+            number_superclients = max(1,floor(len(self.superclients)*self.percentage_superclient_infected))
+            superclients : List[FedSeqSuperClient] = np.random.choice(self.superclients,number_superclients,replace=False)
+            superclients_ids = [s.client_id for s in superclients]
+            clients_ids = []
+            for s in superclients:
+                suitable_clients = [c for c in s.clients if self.__isSuitable(c)]
+                number_clients = max(1,floor(len(suitable_clients)*self.percentage_client_infected_in_superclient))
+                positions = np.random.choice(range(len(suitable_clients)),number_clients,replace=False)
+                for p in positions:
+                    client : FedAvgClient = s.clients[p]
+                    clients_ids.append(client.client_id)
 
-        scramble_table = [[] for _ in range(total_number_clients)]
-        flips_table = [[] for _ in range(total_number_clients)]
-
+        scramble_table = [[] for _ in range(len(clients_ids))]
+        flips_table = [[] for _ in range(len(clients_ids))]
         if self.scramble_method == 'fixed': scrambled_classes = self.__createScramblePairs() 
-
         counter=0
-        for s in superclients:
-            suitable_clients = [c for c in s.clients if self.__isSuitable(c)]
-            number_clients = max(1,floor(len(suitable_clients)*self.percentage_client_infected_in_superclient))
-            positions = np.random.choice(range(len(suitable_clients)),number_clients,replace=False)
-            for p in positions:
-                client : FedAvgClient = s.clients[p]
-                if self.scramble_method == 'random': scrambled_classes = self.__createScramblePairs()
-                attacker = Attacker(client.client_id, scrambled_classes, client.dataloader, client.num_classes, client.device, client.dp)
-                s.clients = (p, attacker)
-                clients_ids.append(client.client_id)
-                scramble_table[counter]+=[s.client_id]
-                scramble_table[counter]+=[client.client_id]
-                scramble_table[counter]+=[f'{c1}-{c2}' for c1,c2 in scrambled_classes]
-                flips_table[counter]+=[s.client_id]
-                flips_table[counter]+=[client.client_id]
-                flips_table[counter]+=attacker.total_flips
-                counter+=1
+        for s_id in superclients_ids:
+            for client in self.superclients[s_id].clients:
+                if client.client_id in clients_ids:
+                    if self.scramble_method == 'random': scrambled_classes = self.__createScramblePairs()
+                    attacker = Attacker(client.client_id, scrambled_classes, client.dataloader, client.num_classes, client.device, client.dp)
+                    p = list(map(lambda c: c.client_id,self.superclients[s_id].clients)).index(client.client_id)
+                    s.clients = (p, attacker)
+                    clients_ids.append(client.client_id)
+                    scramble_table[counter]+=[s_id]
+                    scramble_table[counter]+=[client.client_id]
+                    scramble_table[counter]+=[f'{c1}-{c2}' for c1,c2 in scrambled_classes]
+                    flips_table[counter]+=[s_id]
+                    flips_table[counter]+=[client.client_id]
+                    flips_table[counter]+=attacker.total_flips
+                    counter+=1
 
         columns = ['Superclient_id','Attacker_id']+[f'Scramble {i}' for i in range(len(self.scrambled_classes)//2)]
         self.writer.add_table(scramble_table,columns,'Scrambling classes')
