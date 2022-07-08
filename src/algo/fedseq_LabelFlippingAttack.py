@@ -59,7 +59,7 @@ class FedSeqLabelFlippingAttack(FedSeq):
 
     def __injectAttacker(self):
         if self.alpha==0:
-            superclients_ids = []
+            superclients_ids = set()
             clients_ids = []
             tot_ex_per_scrambled_class = dict([(c,0) for c in self.scrambled_classes])
             example_per_class = 0
@@ -74,7 +74,7 @@ class FedSeqLabelFlippingAttack(FedSeq):
                      tot_ex_per_scrambled_class[class_id]+c.num_ex_per_class()[class_id]<=example_per_class*self.percentage_superclient_infected:
                         tot_ex_per_scrambled_class[class_id]+=c.num_ex_per_class()[class_id]
                         n_selected_clients+=1
-                        superclients_ids.append(s.client_id)
+                        superclients_ids.add(s.client_id)
                         clients_ids.append(c.client_id)
         else:
             number_superclients = max(1,floor(len(self.superclients)*self.percentage_superclient_infected))
@@ -100,7 +100,6 @@ class FedSeqLabelFlippingAttack(FedSeq):
                     attacker = Attacker(client.client_id, scrambled_classes, client.dataloader, client.num_classes, client.device, client.dp)
                     p = list(map(lambda c: c.client_id,self.superclients[s_id].clients)).index(client.client_id)
                     s.clients = (p, attacker)
-                    clients_ids.append(client.client_id)
                     scramble_table[counter]+=[s_id]
                     scramble_table[counter]+=[client.client_id]
                     scramble_table[counter]+=[f'{c1}-{c2}' for c1,c2 in scrambled_classes]
