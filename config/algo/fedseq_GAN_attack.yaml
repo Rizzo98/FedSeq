@@ -6,8 +6,13 @@ algo:
   type: fedseq_GAN_attack
   classname: FedSeqGANattack
   params:
-    output_folder: '/home/arizzardi/FedSeq_ExplicitCifar'
+    output_folder: '/home/arizzardi/FedSeq_explicitEmnist'
+    save_attacker: True
     save_dataset_explicit: True
     save_images: False
     save_loss: False
+    save_dataset_per_client: True
+    save_client_selection: True
+    save_client_distribution: True
+    save_superclient_composition: True #which clients inside each superclient
     
