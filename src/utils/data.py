@@ -17,6 +17,7 @@ def get_dataset(requested_dataset, **kwargs):
                       "cifar100": get_CIFAR100_data,
                       "shakespeare_niid": get_shakespeare_data,
                       "shakespeare_iid": get_shakespeare_data,
+                      "shakespeare_niid_full": get_shakespeare_data,
                       "emnist_niid": get_emnist_data,
                       "emnist_iid": get_emnist_data,
                       "soverflow_niid": get_soverflow_data,
@@ -26,6 +27,7 @@ def get_dataset(requested_dataset, **kwargs):
                               "cifar100": cifar_transform,
                               "shakespeare_niid": shakespeare_transform,
                               "shakespeare_iid": shakespeare_transform,
+                              "shakespeare_niid_full": shakespeare_transform,
                               "emnist_niid": emnist_transform,
                               "emnist_iid": emnist_transform,
                               "soverflow_niid": soverflow_transform,
@@ -88,6 +90,8 @@ def get_shakespeare_data(**kwargs):
         train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_niid.json')))
     elif kwargs['dataset_name']=='shakespeare_iid':
         train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_iid.json')))
+    elif kwargs['dataset_name']=='shakespeare_niid_full':
+        train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_full_niid.json')))
     test_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','test_sampled.json')))
     return train_data['x'], train_data['y'], test_data['x'], test_data['y']
 

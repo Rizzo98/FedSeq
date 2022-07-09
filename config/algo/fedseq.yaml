@@ -12,13 +12,14 @@ algo:
       precomputed: null #path to superclients or null
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
-      disomogeneity_measures: ["gini", "kullback"] #measures that apply only to probability distributions
+      disomogeneity_measures: ["gini", "kullback", "scipy_kullback"] #measures that apply only to probability distributions
       classname: GreedyClusterMaker
-      max_clients: 11
-      min_examples: 800
-      measure: cosine
+      max_clients: 13
+      min_examples: 5000
+      measure: scipy_kullback
       save_statistics: False
       verbose: False
+      save_visualization: False
     evaluator:
       precomputed: null #path to representers or null
       extract_eval : []
@@ -28,7 +29,7 @@ algo:
       variance_explained: 0.9 #percentage of variance explained
       task2vec:
         method: 'montecarlo' #either variational or montecarlo method
-        probe_network: 'resnet18' #either resnet18 or resnet34 for now
+        probe_network: 'rnn' #either resnet18 or resnet34 for now
     training:
       average_model: False
       sequential_rounds: 1 #number of sequential iterations through superclients' clients
@@ -40,5 +41,6 @@ algo:
     save_representers: False
     save_superclients: False
     save_plot_dist_matrix: False
+    keep_representers: False
     common:
       dp: #differential privacy

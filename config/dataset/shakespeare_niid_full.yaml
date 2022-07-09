@@ -1,0 +1,9 @@
+name: shakespeare_niid_full
+dataset_class: ShakespeareLocalDataset
+dataset_num_class: 80
+dataset_size: 3391236 
+num_exemplar: 13565 
+average_accuracy_rounds: 25
+accuracy_centralized: 58.07
+percentages_saved: [0.7, 0.8, 0.9]
+params:
