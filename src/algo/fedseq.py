@@ -180,5 +180,7 @@ class FedSeq(FedBase):
             self.result["forgetting_stats"].append(round_fg_stats)
 
     def assign_representers(self, representers):
-        for i, r in enumerate(representers):
-            self.clients[i].representer = r
+        if not representers:
+            representers = [None for _ in range(len(self.clients))]
+        self.representers = representers
+        
