@@ -10,3 +10,4 @@ params:
   max_iter_dirichlet: 100
   rebalance: False
   shuffle_start_index: True #shuffles starting index for niid
+  order_by_superclass: False

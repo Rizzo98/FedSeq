@@ -27,7 +27,7 @@ class FedSeq(FedBase):
         self.wandbConf = wandbConf
         self.savedir = savedir
         self.save_representers = params.save_representers
-
+        self.keep_representers = params.keep_representers
         # list incompatibilities between extract method and clustering measures
         self.extractions = {*self.evaluator.extract_eval, self.evaluator.extract}
         self.clustering_measures = {*self.clustering.measures_eval, self.clustering.measure}
@@ -39,7 +39,7 @@ class FedSeq(FedBase):
         # list all clustering methods, the one used later for training and the ones for evaluation
         clustering_methods: Dict[str, ClusterMaker] = {
             m: eval(m)(**self.clustering, num_classes=self.dataset_num_classes,
-                       savedir=savedir) for m in
+                       savedir=savedir, alpha=self.alpha) for m in
             {*self.clustering.classnames_eval, self.clustering.classname}}
 
         if params.clustering.precomputed == None:
@@ -58,7 +58,9 @@ class FedSeq(FedBase):
             if params.save_plot_dist_matrix:
                 similarity.plot_distance_matrix(clients_representer, savedir, distance=self.clustering.measure)
 
-
+            if self.keep_representers:
+                self.assign_representers(clients_representer)
+            
             self.superclients: List[FedSeqSuperClient] = self._run_clustering_training(clustering_methods,clients_representer,
                                                                               self.evaluator.extract)
         else:
@@ -156,6 +158,8 @@ class FedSeq(FedBase):
         method = clustering_methods[self.clustering.classname]
         method.save_statistic = self.clustering.save_statistics
         method.measure = method.requires_clients_evaluation() and self.clustering.measure or None
+        if self.keep_representers:
+            self.clustering_method = method
         log.info(f"Clustering with {self.clustering.classname} using {method.measure} for training")
         return method.make_superclients(self.clients, representers, sub_path=extracted, **self.training,
                                         optimizer_class=self.optimizer, optimizer_args=self.optimizer_args)
@@ -185,3 +189,9 @@ class FedSeq(FedBase):
             for c in self.selected_clients:
                 round_fg_stats[c.client_id] = c.forgetting_stats
             self.result["forgetting_stats"].append(round_fg_stats)
+
+    def assign_representers(self, representers):
+        if not representers:
+            representers = [None for _ in range(len(self.clients))]
+        self.representers = representers
+        

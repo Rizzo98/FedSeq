@@ -17,6 +17,7 @@ def get_dataset(requested_dataset, **kwargs):
                       "cifar100": get_CIFAR100_data,
                       "shakespeare_niid": get_shakespeare_data,
                       "shakespeare_iid": get_shakespeare_data,
+                      "shakespeare_niid_full": get_shakespeare_data,
                       "emnist_niid": get_emnist_data,
                       "emnist_iid": get_emnist_data,
                       "soverflow_niid": get_soverflow_data,
@@ -26,6 +27,7 @@ def get_dataset(requested_dataset, **kwargs):
                               "cifar100": cifar_transform,
                               "shakespeare_niid": shakespeare_transform,
                               "shakespeare_iid": shakespeare_transform,
+                              "shakespeare_niid_full": shakespeare_transform,
                               "emnist_niid": emnist_transform,
                               "emnist_iid": emnist_transform,
                               "soverflow_niid": soverflow_transform,
@@ -69,13 +71,14 @@ def cifar_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
         max_iter = kwargs['params'].max_iter_dirichlet
         rebalance = kwargs['params'].rebalance
         shuffle_start_index = kwargs['params'].shuffle_start_index
+        order_by_superclass = kwargs['params'].order_by_superclass if 'order_by_superclass' in kwargs['params'] else None
 
         if shard_size < 1:
             raise ValueError("shard_size should be at least 1")
         if alpha == 0:  # Non-IID
             local_datasets, test_datasets = create_non_iid(train_x, test_x, train_y, test_y, num_clients,
                                                         shard_size,
-                                                        dataset_class, dataset_num_class, shuffle_start_index)
+                                                        dataset_class, dataset_num_class, shuffle_start_index, order_by_superclass)
         else:
             local_datasets, test_datasets = create_using_dirichlet_distr(train_x, test_x, train_y, test_y,
                                                                         num_clients,
@@ -84,11 +87,15 @@ def cifar_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
         return local_datasets, test_datasets
 
 def get_shakespeare_data(**kwargs):
+    test_file_name = 'test_sampled.json'
     if kwargs['dataset_name']=='shakespeare_niid':
         train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_niid.json')))
     elif kwargs['dataset_name']=='shakespeare_iid':
         train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_sampled_iid.json')))
-    test_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','test_sampled.json')))
+    elif kwargs['dataset_name']=='shakespeare_niid_full':
+        train_data = json.load(open(os.path.join(os.getcwd(),'datasets','Shakespeare','train_full_niid.json')))
+        test_file_name = 'test_processed.json'
+    test_data = json.load(open(os.path.join(os.getcwd(),'datasets', 'Shakespeare', test_file_name)))
     return train_data['x'], train_data['y'], test_data['x'], test_data['y']
 
 def shakespeare_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
@@ -215,9 +222,14 @@ def create_datasets(dataset, num_clients, alpha, **kwargs):
 
 
 def create_non_iid(train_img, test_img, train_label, test_label, num_clients, shard_size,
-                   dataset_class, dataset_num_class, shuffle_start_index):
+                   dataset_class, dataset_num_class, shuffle_start_index, order_by_superclass):
     
-    train_sorted_index = np.argsort(train_label)
+    if dataset_class == CifarLocalDataset and dataset_num_class == 100 and order_by_superclass:
+        coarse_mappings = [4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13]
+        train_coarse_label = np.array([coarse_mappings[y] for y in train_label])
+        train_sorted_index = np.lexsort((train_label, train_coarse_label))
+    else: 
+        train_sorted_index = np.argsort(train_label)
     train_img = train_img[train_sorted_index]
     train_label = train_label[train_sorted_index]
 

@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - fedseq
+
+algo:
+  type: fedseq_parallel
+  classname: FedSeqToParallel
+  params:
+    growth_func: linear
+    alpha_growth: 2
+    beta_growth: 8
+    keep_representers: True

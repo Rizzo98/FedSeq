@@ -2,6 +2,7 @@ import os
 from typing import List, Tuple, Any, Callable
 from matplotlib import pyplot as plt
 import numpy as np
+import json
 from scipy.stats import wasserstein_distance
 from scipy.special import rel_entr
 from sklearn.decomposition import PCA
@@ -13,6 +14,7 @@ from abc import ABC, abstractmethod
 from src.algo.fedseq_modules import FedSeqSuperClient, GraphSuperclient
 import logging
 from src.datasets.cifar import CifarLocalDataset
+from src.datasets.shakespeare import ShakespeareLocalDataset
 from src.utils import savepickle
 from sklearn.manifold import TSNE
 from matplotlib.ticker import NullFormatter
@@ -75,6 +77,7 @@ class ClusterMaker(ABC):
         self._measure = measure
         self.verbose = verbose
         self._save_visualization = save_visualization
+        self._n_clusters = kwargs['n_clusters'] if 'n_clusters' in kwargs else None
         self._statistics = {}
 
     @property
@@ -100,7 +103,8 @@ class ClusterMaker(ABC):
         assert all(num_classes == c.num_classes for c in clients), "Clients have different label space's dimension"
         clusters = self._make_clusters(clients, representers)
         sp = [c.make_superclient(self.verbose, num_classes=num_classes, **sup_kwargs) for c in clusters]
-        self._collect_clustering_statistics(clients, ("superclients", {i: s.num_ex_per_class()
+        if self._save_statistics:
+            self._collect_clustering_statistics(clients, ("superclients", {i: s.num_ex_per_class()
                                                                        for i, s in enumerate(sp)}))
         self._save_tsne(clients, representers, sp)
         savepickle(self._statistics,
@@ -116,11 +120,10 @@ class ClusterMaker(ABC):
         pass
 
     def _collect_clustering_statistics(self, clients: List[Client], *groups: Tuple[str, Any]):
-        if self._save_statistics:
-            self._statistics.update({"classname": self.__class__.__name__})
-            if "clients" not in self._statistics:
-                self._statistics.update({"clients": {c.client_id: c.num_ex_per_class() for c in clients}})
-            self._statistics.update(dict(groups))
+        self._statistics.update({"classname": self.__class__.__name__})
+        if "clients" not in self._statistics:
+            self._statistics.update({"clients": {c.client_id: c.num_ex_per_class() for c in clients}})
+        self._statistics.update(dict(groups))
 
     def requires_clients_evaluation(self) -> bool:
         return False
@@ -161,38 +164,67 @@ class ClusterMaker(ABC):
 
     def _save_tsne(self, clients, representers, superclients):
         if self._save_visualization and representers is not None:
-            if  isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and all((len(np.unique(c.dataloader.dataset.labels))==1) for c in clients):
+            if  isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and all((len(np.unique(c.dataloader.dataset.labels))==1) for c in clients) or \
+                    isinstance(clients[0].dataloader.dataset, ShakespeareLocalDataset):
                 representers = np.array(representers)
                 clients_superclients = np.zeros(len(clients))
                 for s in superclients:
                     for c in s.clients:
                         clients_superclients[c.client_id] = s.client_id
-                clients_class = np.array([c.dataloader.dataset.labels[0] for c in clients])
-                '''
+                
+
+                
                 if representers.shape[1] > 50:
                     reducer = PCA(n_components=50, svd_solver='full')
                     representers = reducer.fit_transform(representers)
-                '''
+                
                 X = TSNE(n_components=2, learning_rate='auto',init='random').fit_transform(representers)
-                (fig, subplots) = plt.subplots(2, figsize=(15, 15))
+                n_subplots = 3 if isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and clients[0].dataloader.dataset.num_classes == 100 else 2
+                (fig, subplots) = plt.subplots(n_subplots, figsize=(15, 15))
                 ax = subplots[0]
-                ax.set_title("representers vs single class seen")
-                colors = cm.rainbow(np.linspace(0, 1, clients[0].dataloader.dataset.num_classes))
-                for class_id, color in zip(range(clients[0].dataloader.dataset.num_classes), colors):
-                    ids_of_class = np.array([True if cc == class_id else False for cc in clients_class])
-                    ax.scatter(X[ids_of_class, 0], X[ids_of_class, 1], color=color)
-                    ax.xaxis.set_major_formatter(NullFormatter())
-                    ax.yaxis.set_major_formatter(NullFormatter())
-                ax.axis("tight")
+                if isinstance(clients[0].dataloader.dataset, CifarLocalDataset):
+                    clients_class = np.array([c.dataloader.dataset.labels[0] for c in clients])
+                    ax.set_title("representers vs single class seen")
+                    colors = cm.rainbow(np.linspace(0, 1, clients[0].dataloader.dataset.num_classes))
+                    for class_id, color in zip(range(clients[0].dataloader.dataset.num_classes), colors):
+                        ids_of_class = np.array([True if cc == class_id else False for cc in clients_class])
+                        ax.scatter(X[ids_of_class, 0], X[ids_of_class, 1], color=color)
+                        ax.xaxis.set_major_formatter(NullFormatter())
+                        ax.yaxis.set_major_formatter(NullFormatter())
+                    ax.axis("tight")
+                elif isinstance(clients[0].dataloader.dataset, ShakespeareLocalDataset):
+                    clients_operas = list(json.load(open('./datasets/Shakespeare/all_data_train.json'))['hierarchies'])
+                    assert len(clients_operas) == len(representers), f"Visualization available only for the full Shakespeare dataset (K={len(clients_operas)})."
+                    unique_operas = list(set(clients_operas))
+                    ax.set_title("representers vs opera they belong to")
+                    colors = cm.rainbow(np.linspace(0, 1, len(unique_operas)))
+                    for opera, color in zip(unique_operas, colors):
+                        ids_of_opera = np.array([True if o == opera else False for o in clients_operas])
+                        ax.scatter(X[ids_of_opera, 0], X[ids_of_opera, 1], color=color)
+                        ax.xaxis.set_major_formatter(NullFormatter())
+                        ax.yaxis.set_major_formatter(NullFormatter())
+                    ax.axis("tight")
+                
                 ax = subplots[1]
                 ax.set_title("representers vs superclient assigned to")
                 colors = cm.rainbow(np.linspace(0, 1, len(superclients)))
                 for superclient_id, color in zip(range(len(superclients)), colors):
-                    ids_of_sc = np.array([True if sc == superclient_id else False for sc in clients_superclients])
-                    ax.scatter(X[ids_of_sc, 0], X[ids_of_sc, 1], color=color)
+                    ids_of_superclient = np.array([True if sc == superclient_id else False for sc in clients_superclients])
+                    ax.scatter(X[ids_of_superclient, 0], X[ids_of_superclient, 1], color=color)
                     ax.xaxis.set_major_formatter(NullFormatter())
                     ax.yaxis.set_major_formatter(NullFormatter())
                 ax.axis("tight")
+                if isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and clients[0].dataloader.dataset.num_classes == 100:
+                    ax = subplots[2]
+                    ax.set_title("representers vs superclass they belong to")
+                    coarse_labels = [4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13]
+                    colors = cm.rainbow(np.linspace(0, 1, 20))
+                    for coarse_label, color in zip(range(20), colors):
+                        ids_of_superclass = np.array([True if coarse_labels[cc] == coarse_label else False for cc in clients_class])
+                        ax.scatter(X[ids_of_superclass, 0], X[ids_of_superclass, 1], color=color)
+                        ax.xaxis.set_major_formatter(NullFormatter())
+                        ax.yaxis.set_major_formatter(NullFormatter())
+                    ax.axis("tight")
                 plt.savefig(f'{self._savedir}/class_vs_superclient_viz.png')
                 plt.clf()
 

@@ -2,6 +2,8 @@ from src.algo.fedseq_modules.cluster_maker import ClientCluster, InformedCluster
 from src.algo.fed_clients.base_client import Client
 from typing import List, Tuple
 import numpy as np
+import math
+import random
 from sklearn.cluster import KMeans
 import copy
 import itertools as it
@@ -17,7 +19,7 @@ class KMeansClusterMaker(InformedClusterMaker):
 
     def _make_clusters(self, clients: List[Client], representers: List[np.ndarray]) -> \
             List[ClientCluster]:
-        k = self.num_classes
+        k = self.num_classes if self._n_clusters is None else self._n_clusters
         k_means = KMeans(k).fit(representers)
         for i, c in enumerate(clients):
             c.cluster_id = k_means.labels_[i]
@@ -43,20 +45,32 @@ class KMeansClusterMaker(InformedClusterMaker):
         num_clients_to_assign = np.sum([len(c) for c in k_clusters])
         n_superclient = 0
         k_clusters = copy.deepcopy(k_clusters)
-        clusters_iterator = it.cycle(k_clusters)
-        cluster = ClientCluster(n_superclient, logger=log)
-        while num_clients_to_assign != 0:
-            if cluster.num_examples() < self._min_examples and cluster.num_clients() < self._max_clients:
-                k_cluster = next(clusters_iterator)
-                while len(k_cluster) == 0: k_cluster = next(clusters_iterator)  # find first non-empty k_cluster
-                cluster.add_client(clients[k_cluster.pop(-1)])
-                num_clients_to_assign -= 1
-            else:
-                clusters.append(cluster)
-                n_superclient += 1
-                cluster = ClientCluster(n_superclient, logger=log)
-        self._check_redistribution(cluster, clusters)
+        if self._n_clusters is None:
+            clusters_iterator = it.cycle(k_clusters)
+            cluster = ClientCluster(n_superclient, logger=log)
+            while num_clients_to_assign != 0:
+                if cluster.num_examples() < self._min_examples and cluster.num_clients() < self._max_clients:
+                    k_cluster = next(clusters_iterator)
+                    while len(k_cluster) == 0: k_cluster = next(clusters_iterator)  # find first non-empty k_cluster
+                    cluster.add_client(clients[k_cluster.pop(-1)])
+                    num_clients_to_assign -= 1
+                else:
+                    clusters.append(cluster)
+                    n_superclient += 1
+                    cluster = ClientCluster(n_superclient, logger=log)
+            self._check_redistribution(cluster, clusters)
+        else:
+            tot_superclients = math.floor(num_clients_to_assign / self._n_clusters)
+            clusters = [ClientCluster(i, logger=log) for i in range(tot_superclients)]
+            random.shuffle(k_clusters)
+            i = 0
+            for k_cluster in k_clusters:
+                for client_id in k_cluster:
+                    clusters[i % tot_superclients].add_client(clients[client_id])
+                    i += 1
         return clusters
+        
+            
 
     def uses_custom_metric(self) -> bool:
         return True
