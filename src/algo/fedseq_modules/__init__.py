@@ -4,5 +4,6 @@ from src.algo.fedseq_modules.cluster_maker import ClusterMaker, InformedClusterM
 from src.algo.fedseq_modules.random_cluster_maker import RandomClusterMaker
 from src.algo.fedseq_modules.greedy_cluster_maker import GreedyClusterMaker
 from src.algo.fedseq_modules.kmeans_cluster_maker import KMeansClusterMaker
+from src.algo.fedseq_modules.icg_cluster_maker import ICGClusterMaker
 from src.algo.fedseq_modules.ilp_cluster_maker import ConfidenceILP
 from src.algo.fedseq_modules.client_evaluator import ClientEvaluator, ClientEvaluation

@@ -19,6 +19,7 @@ def get_dataset(requested_dataset, **kwargs):
                       "shakespeare_iid": get_shakespeare_data,
                       "shakespeare_niid_full": get_shakespeare_data,
                       "emnist_niid": get_emnist_data,
+                      "emnist_niid_subset": get_emnist_data,
                       "emnist_iid": get_emnist_data,
                       "soverflow_niid": get_soverflow_data,
                       "soverflow_iid": get_soverflow_data,
@@ -29,6 +30,7 @@ def get_dataset(requested_dataset, **kwargs):
                               "shakespeare_iid": shakespeare_transform,
                               "shakespeare_niid_full": shakespeare_transform,
                               "emnist_niid": emnist_transform,
+                              "emnist_niid_subset": emnist_transform,
                               "emnist_iid": emnist_transform,
                               "soverflow_niid": soverflow_transform,
                               "soverflow_iid": soverflow_transform}
@@ -117,14 +119,16 @@ def shakespeare_transform(centralized, train_x, train_y, test_x, test_y, **kwarg
 
 def get_emnist_data(**kwargs): 
     datasets_path = os.path.join(os.getcwd(),'datasets','EMNIST')
-    if kwargs['dataset_name']=='emnist_niid':
+    if 'emnist_niid' in kwargs['dataset_name']:
         train_dir = os.path.join(datasets_path, 'train', 'EMNIST_niid')
-    elif kwargs['dataset_name']=='emnist_iid':
+    elif 'emnist_iid' in kwargs['dataset_name']:
         train_dir = os.path.join(datasets_path, 'train', 'EMNIST_iid')
     files = os.listdir(train_dir)
     files = [f for f in files if f.endswith('.json')]
     train_data = []
     train_labels = []
+    if '_subset' in kwargs['dataset_name']:
+        files = files[:4]
     for f in tqdm(files,desc='Loading training files'):
         training_dict = json.load(open(os.path.join(train_dir, f)))
         train_data += training_dict['x']
@@ -134,10 +138,16 @@ def get_emnist_data(**kwargs):
     files = [f for f in files if f.endswith('.json')]
     test_data = []
     test_labels = []
+    if '_subset' in kwargs['dataset_name']:
+        files = files[:3]
     for f in tqdm(files,desc='Loading test files'):
         test_dict = json.load(open(os.path.join(test_dir, f)))
         test_data += test_dict['x']
         test_labels += test_dict['y']
+    if '_subset' in kwargs['dataset_name']:
+        train_data, train_labels = train_data[:368], train_labels[:368]
+        test_data, test_labels = test_data[:8172], test_labels[:8172]
+    
     return train_data, train_labels, test_data, test_labels
 
 def emnist_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
