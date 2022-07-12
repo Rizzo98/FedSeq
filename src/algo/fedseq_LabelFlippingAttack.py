@@ -64,7 +64,9 @@ class FedSeqLabelFlippingAttack(FedSeq):
             tot_ex_per_scrambled_class = dict([(c,0) for c in self.scrambled_classes])
             example_per_class = 0
             if self.dataset.name == 'cifar10': example_per_class = 5_000
+            if self.dataset.name == 'cifar100': example_per_class = 500
             assert example_per_class>0, 'dataset not implemented!'
+            
             for s in self.superclients:
                 n_selected_clients = 0
                 for c in s.clients:
@@ -99,7 +101,7 @@ class FedSeqLabelFlippingAttack(FedSeq):
                     if self.scramble_method == 'random': scrambled_classes = self.__createScramblePairs()
                     attacker = Attacker(client.client_id, scrambled_classes, client.dataloader, client.num_classes, client.device, client.dp)
                     p = list(map(lambda c: c.client_id,self.superclients[s_id].clients)).index(client.client_id)
-                    s.clients = (p, attacker)
+                    self.superclients[s_id].clients = (p, attacker)
                     scramble_table[counter]+=[s_id]
                     scramble_table[counter]+=[client.client_id]
                     scramble_table[counter]+=[f'{c1}-{c2}' for c1,c2 in scrambled_classes]

@@ -168,6 +168,17 @@ class FedSeq(FedBase):
 
         for c in tqdm(self.selected_clients, desc=f'Training of selected superclients @ round {self._round}'):
             c.client_update(self.optimizer, self.optimizer_args, self.training.sequential_rounds, self.loss_fn)
+        if self.dp:
+            norms = []
+            keys = []
+            positions = list(range(min([len(sc.clients) for sc in self.selected_clients])))
+            for sc in self.selected_clients:
+                keys.append(f'Superclient {sc.client_id}')
+                sc_norm = []
+                for client in sc.clients[:len(positions)]:
+                    sc_norm.append(client.send_model().weight_norm())
+                norms.append(sc_norm)
+            self.writer.plot_multiline(positions,norms,keys,'Weight norm','Positions')
 
         if self.training.check_forgetting:
             round_fg_stats = {}

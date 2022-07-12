@@ -28,6 +28,7 @@ class FedBase(Algo):
         self.batch_size = B
         self.fraction = C
         self.local_epoch = E
+        self.dp = common.dp
         self.alpha = alpha
         self.dataset_num_classes = dataset.dataset_num_class
         self.aggregation_policy = params.aggregation_policy
@@ -47,7 +48,7 @@ class FedBase(Algo):
 
         self.clients = [
             eval(params.client.classname)(k, local_dataloaders[k], self.dataset_num_classes, self.device,
-                                          common.dp, **params.client.args) for k in range(self.num_clients)
+                                          self.dp, **params.client.args) for k in range(self.num_clients)
         ]
         self.selected_clients = []
 
@@ -104,8 +105,10 @@ class FedBase(Algo):
         self.num_round = num_round
         if self.wandbConf.restart_from_run is None:
             if self.wandbConf.client_datasets:
-                bins = [list(np.bincount(c.labels, minlength=self.dataset.dataset_num_class)) for c in self.local_datasets]
-                self.writer.add_table(bins,[f'Class {j}' for j in range(len(bins[0]))],'Clients distribution')
+                bins = []
+                for c in self.clients: bins.append([c.client_id]+list(c.num_ex_per_class()))
+                #bins = [list(np.bincount(c.labels, minlength=self.dataset.dataset_num_class)) for c in self.local_datasets]
+                self.writer.add_table(bins,['Client_id']+[f'Class {j}' for j in range(len(bins[0])-1)],'Clients distribution')
             self.validation_step()
 
         self.save_clients_model()
