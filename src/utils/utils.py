@@ -175,6 +175,9 @@ class WanDBSummaryWriter:
         else:
             wandb.log({tag:value}, step=global_step)
     
+    def plot_multiline(self,xs,ys,keys,title,xname):
+        wandb.log({title:wandb.plot.line_series(xs,ys,keys,title,xname=xname)})
+
     def add_summary_value(self, name, value):
         wandb.run.summary[name] = value
     

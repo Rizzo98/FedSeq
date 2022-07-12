@@ -20,18 +20,20 @@ from src.models.GAN_models import Cifar10Generator, Cifar10Discriminator, Emnist
 log = logging.getLogger(__name__)
 
 class Attacker(FedAvgClient):
-    def __init__(self, client_id: int, dataloader: Optional[DataLoader], G_class, D_class, outputFolder, saveImages, saveLoss, saveDataset, num_classes=None, device="cpu", dp=None):
+    def __init__(self, client_id: int, dataloader: Optional[DataLoader], G_class, D_class, outputFolder, saveImages, saveLoss, saveDataset, trainEpochs, n_images, nRounds, num_classes=None, device="cpu", dp=None):
         super().__init__(client_id, dataloader, num_classes, device, dp)
         self.__G_class = G_class
         self.__D_class = D_class
         self.__saveDataset = saveDataset
         self.G = self.__G_class()
         self.G.weight_init(mean=0.0, std=0.02)
-        self.train_epochs = 300
+        self.train_epochs = trainEpochs
         self.class_attacked = 3
         self.b_size = 64
         self.__attack_dataloader = DataLoader(self.dataloader.dataset,batch_size=self.b_size,shuffle=True)
-        self.n_generation = 16
+        self.n_generation = n_images
+        self.__save_after_n_rounds = nRounds
+        self.__lastCallRound = 0
         self.__fixed_noise = Variable(torch.randn(self.n_generation,100,1,1).to(self.device))
         self.fake_label = 5
         self.__round = -1
@@ -162,8 +164,11 @@ class Attacker(FedAvgClient):
             D_loss_fake_storage.append(np.mean(D_loss_fake_batch))
             G_loss_storage.append(np.mean(G_loss_batch))
 
-        os.mkdir(f'{self.__attack_folder}/round_{self.round}')
-        reconstructed_images = self.G(self.__fixed_noise)
+        if not os.path.isdir(f'{self.__attack_folder}/round_{self.round}'):
+            os.mkdir(f'{self.__attack_folder}/round_{self.round}')
+
+        if self.round-self.__lastCallRound>=self.__save_after_n_rounds:
+            reconstructed_images = self.G(self.__fixed_noise)
         
         if self.__save_loss:
             os.mkdir(f'{self.__attack_folder}/round_{self.round}/Losses')
@@ -181,7 +186,7 @@ class Attacker(FedAvgClient):
             plt.savefig(f'{self.__attack_folder}/round_{self.round}/Losses/Generator.png')
             plt.close()
 
-        if self.__saveDataset:
+        if self.__saveDataset and self.round-self.__lastCallRound>=self.__save_after_n_rounds:
             os.mkdir(f'{self.__attack_folder}/round_{self.round}/dataset')
             for i,img in enumerate(reconstructed_images):
                 save_image(img.detach().cpu(),f'{self.__attack_folder}/round_{self.round}/dataset/generated_image{i}.png',normalize=True)
@@ -193,7 +198,8 @@ class Attacker(FedAvgClient):
                 save_image(grid,f'{self.__attack_folder}/round_{self.round}/generated_image{i}.png',normalize=True)
 
         #self.__add_images_to_dataset(reconstructed_images) 
-
+        if self.round-self.__lastCallRound>=self.__save_after_n_rounds:
+            self.__lastCallRound=self.round
         super().client_update(optimizer, optimizer_args, local_epoch, loss_fn)
 
 
@@ -210,8 +216,12 @@ class FedSeqGANattack(FedSeq):
         self.__save_client_distribution = params['save_client_distribution']
         self.__save_superclient_composition = params['save_superclient_composition']
         self.__save_attacker = params['save_attacker']
+        self.__save_accuracy = params['save_accuracy']
+        self.__GAN_train_epochs = params['GAN_train_epochs']
+        self.__GAN_n_fake_images = params['GAN_n_fake_images']
+        self.__GAN_save_after_n_rounds = params['GAN_save_after_n_rounds']
+
         sc, c, pos = self.__injectAttacker(G_class, D_class, self.__outputFolder, self.__saveImages, self.__saveLoss, self.__saveDataset)
-        
         if self.__save_attacker:
             json.dump({'Attacker_id':c.client_id, 'Superclient_id':sc.client_id ,'Position':int(pos)},open(f'{self.__outputFolder}/Attacker.json','w'))
         
@@ -245,7 +255,7 @@ class FedSeqGANattack(FedSeq):
         # superclient : FedSeqSuperClient = self.superclients[0]
         pos = np.random.choice(range(1,len(superclient.clients)),1)[0]
         client = superclient.clients[pos]
-        self.attacker = Attacker(client.client_id,client.dataloader,G_class,D_class,outputFolder,saveImages,saveLoss,saveDataset,client.num_classes,client.device,client.dp)
+        self.attacker = Attacker(client.client_id,client.dataloader,G_class,D_class,outputFolder,saveImages,saveLoss,saveDataset,self.__GAN_train_epochs,self.__GAN_n_fake_images,self.__GAN_save_after_n_rounds,client.num_classes,client.device,client.dp)
         superclient.clients = (pos, self.attacker)
         return superclient, client, pos
     
@@ -280,3 +290,7 @@ class FedSeqGANattack(FedSeq):
             for s in self.selected_clients:
                 self.client_selection[self._round]+=[c.client_id for c in s.clients]
             json.dump(self.client_selection,open(f'{self.__outputFolder}/client_selection.json','w'))
+        if self.__save_accuracy:
+            loss = self.result['loss']
+            acc = [x.item() for x in self.result['accuracy']]
+            json.dump({'loss':loss,'accuracy':acc},open(f'{self.__outputFolder}/accuracy.json','w'))

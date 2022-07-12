@@ -72,6 +72,13 @@ class Model(nn.Module):
             noise = noise.to(param.device)
             param.data.add_(noise)
 
+    def weight_norm(self):
+        totalSum = 0
+        for param in self.model.parameters():
+            totalSum+=torch.sum(torch.pow(param,2))
+        weight_norm = torch.sqrt(totalSum)
+        return weight_norm.item()
+
     def forward(self, x):
         return self.model.forward(x)
 

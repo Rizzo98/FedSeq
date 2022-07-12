@@ -24,10 +24,10 @@ class Attacker(FedAvgClient):
             for j,(s_class, t_class) in enumerate(self.scrambled_classes):
                 if dataset.labels[i] == s_class:
                     dataset.labels[i] = t_class
+                    self.total_flips[j]+=1
                 elif dataset.labels[i] == t_class:
                     dataset.labels[i] = s_class
-                self.total_flips[j]+=1
-
+                    self.total_flips[j]+=1
 
 class FedAvgLabelFlippingAttack(FedAvg):
     def __init__(self, model_info, params, device: str, dataset: str, output_suffix: str, savedir: str, writer=None, wandbConf=None):
