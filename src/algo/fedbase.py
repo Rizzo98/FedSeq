@@ -1,9 +1,8 @@
+import datetime
 import os
-import pickle
 from torch.nn.modules.loss import CrossEntropyLoss
 import time
 import numpy as np
-import random
 from abc import abstractmethod
 from torch.utils.data import DataLoader
 from src.datasets import StackoverflowLocalDataset
@@ -141,7 +140,14 @@ class FedBase(Algo):
                     )
                 self.writer.add_summary_value(f'Average_accuracy_{self.dataset.average_accuracy_rounds}_rounds',\
                     self.writer.local_store['Avg_acc']/self.dataset.average_accuracy_rounds)
-
+                if hasattr(self, 'avg_n_superclients'):
+                    self.writer.add_summary_value('avg_n_superclients', self.avg_n_superclients/self.num_round)
+                if hasattr(self, 'clustering_method') and self.clustering.collect_time_statistics:
+                    self.writer.add_summary_value('total_cluster_time', str(datetime.timedelta(seconds=(self.clustering_method._writer.local_store['cluster_time']))))
+                    self.writer.add_summary_value('avg_cluster_time', str(datetime.timedelta(seconds=(self.clustering_method._writer.local_store['cluster_time']/self.clustering_method._writer.local_store['n_clustering']))))
+                    self.writer.add_summary_value('#_times_clustering', self.clustering_method._writer.local_store['n_clustering'])
+                    self.writer.add_summary_value('avg_largest_sc_#_examples', self.clustering_method._writer.local_store['largest_sc_#_examples']/self.clustering_method._writer.local_store['n_clustering'])
+                    self.writer.add_summary_value('avg_largest_sc_#_clients', self.clustering_method._writer.local_store['largest_sc_#_clients']/self.clustering_method._writer.local_store['n_clustering'])
     def save_clients_model(self):
         if self.save_models:
             for c in self.clients:

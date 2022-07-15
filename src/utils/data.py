@@ -138,16 +138,15 @@ def get_emnist_data(**kwargs):
     files = [f for f in files if f.endswith('.json')]
     test_data = []
     test_labels = []
-    if '_subset' in kwargs['dataset_name']:
-        files = files[:3]
+    #if '_subset' in kwargs['dataset_name']:
+    #    files = files[:3]
     for f in tqdm(files,desc='Loading test files'):
         test_dict = json.load(open(os.path.join(test_dir, f)))
         test_data += test_dict['x']
         test_labels += test_dict['y']
     if '_subset' in kwargs['dataset_name']:
         train_data, train_labels = train_data[:368], train_labels[:368]
-        test_data, test_labels = test_data[:8172], test_labels[:8172]
-    
+    #    test_data, test_labels = test_data[:8172], test_labels[:8172]
     return train_data, train_labels, test_data, test_labels
 
 def emnist_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):

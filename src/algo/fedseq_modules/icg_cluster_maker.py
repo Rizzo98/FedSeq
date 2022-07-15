@@ -14,13 +14,15 @@ log = logging.getLogger(__name__)
 
 
 class ICGClusterMaker(InformedClusterMaker):
-    def __init__(self, n_max_iterations: int = 10, *args, **kwargs):
+    def __init__(self, n_max_iterations: int = 10, ICG_n_superclients: int = 0, n_clients: int = 0, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_max_iterations = n_max_iterations
-
+        self._n_superclients = kwargs['n_superclients'] if 'n_superclients' in kwargs else ICG_n_superclients
+        self._n_clusters = kwargs['n_clusters'] if 'n_clusters' in kwargs else math.floor(n_clients/self._n_superclients)
+        
     def _make_clusters(self, clients: List[Client], representers: List[np.ndarray]) -> List[ClientCluster]:
-        self.n_sampled_clients = self._n_clusters * math.floor(len(clients) / self._n_clusters)
-        self.n_clients_x_cluster = int(self.n_sampled_clients / self._n_clusters)
+        self.n_sampled_clients = self._n_clusters * self._n_superclients
+        self.n_clients_x_cluster = self._n_superclients
         client_representers = list(zip(clients, representers))
         random.shuffle(client_representers)
         client_representers = list(zip(*client_representers))
@@ -98,6 +100,7 @@ class ICGClusterMaker(InformedClusterMaker):
             for cluster in range(self._n_clusters):
                 idx = int(np.random.choice(range(len(clusters[cluster])), 1))
                 client = clusters[cluster].pop(idx)
+                self.sampled_clients[client].cluster_id = cluster
                 group.add_client(self.sampled_clients[client])
             groups.append(group)
         return groups

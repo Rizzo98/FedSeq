@@ -18,27 +18,32 @@ class FedSeqToParallel(FedSeq):
         self.alpha_growth = params.alpha_growth
         self.beta_growth = params.beta_growth
         self.growth_func = growth_functions[params.growth_func]
+        self.avg_n_superclients = 0
         with open_dict(params):
             params.clustering.n_clusters = math.floor(params.common.K / self.growth_func(self.alpha_growth, self.beta_growth, 1))
+            params.clustering.n_superclients = self.growth_func(self.alpha_growth, self.beta_growth, 1)
         super().__init__(model_info, params, device, dataset, output_suffix, savedir, writer, wandbConf)
+        
     
     def train_step(self):
         self.reassign_clients()
-        self.writer.add_scalar("n_superclients", self.num_superclients, self._round)
+        self.avg_n_superclients += self.num_superclients
+        self.writer.add_scalar("n_superclients", self.num_superclients, self._round + 1)
         super().train_step()
     
     def reassign_clients(self):
-        #NOTE TO SELF: for icg we need to sample the clients in order to create tot clusters of equal size and 
         n_new_superclients = self.growth_func(self.alpha_growth, self.beta_growth, self._round + 1)
         if  n_new_superclients > len(self.superclients):
             self.clustering_method._n_clusters = math.floor(self.num_clients / n_new_superclients)
+            self.clustering_method._n_superclients = n_new_superclients
             self.superclients = self.clustering_method.make_superclients(self.clients, self.representers, sub_path=self.evaluator.extract, **self.training,
-                                        optimizer_class=self.optimizer, optimizer_args=self.optimizer_args)
+                                        optimizer_class=self.optimizer, optimizer_args=self.optimizer_args, one_time_clustering = (not self.keep_representers))
             self.num_superclients = len(self.superclients)
+        '''
         else:
             if self._round > 0:
                 self._shuffle_current_superclients()
-                
+        '''        
             
     def _shuffle_current_superclients(self):
         if self.clustering.classname != 'RandomClusterMaker':

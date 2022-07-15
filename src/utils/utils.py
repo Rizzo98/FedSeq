@@ -136,8 +136,12 @@ class WanDBSummaryWriter:
                     if config.algo.params.clustering.classname != 'KMeansClusterMaker':
                         measure = f'measure:{config.algo.params.clustering.measure}'
                         run_name+=f'_{measure}'
-                max_clients = f'maxClients:{config.algo.params.clustering.max_clients}'
-                run_name+=f'_{max_clients}'
+                if config.algo.type=='fedseq':
+                    max_clients = f'maxClients:{config.algo.params.clustering.max_clients}'
+                    run_name+=f'_{max_clients}'
+                elif config.algo.type=='fedseq_parallel':
+                    func = f'func:{config.algo.params.growth_func}(a={config.algo.params.alpha_growth},b={config.algo.params.beta_growth})'
+                    run_name+=f'_{func}'
         if config.device=='cpu':
             project_name = 'test-project'
         if config.wandb.run_suffix is not None:

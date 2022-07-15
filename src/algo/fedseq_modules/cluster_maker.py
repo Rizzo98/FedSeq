@@ -1,4 +1,6 @@
+import datetime
 import os
+import time
 from typing import List, Tuple, Any, Callable
 from matplotlib import pyplot as plt
 import numpy as np
@@ -69,15 +71,16 @@ class ClientCluster:
 
 class ClusterMaker(ABC):
     def __init__(self, min_examples: int, max_clients: int, save_statistics: bool, savedir: str,
-                    measure: str = None, verbose: bool = False, save_visualization: bool = False, *args, **kwargs):
+                    measure: str = None, verbose: bool = False, collect_time_statistics: bool = False, save_visualization: bool = False, writer = None, *args, **kwargs):
         self._min_examples = min_examples
         self._max_clients = max_clients
         self._save_statistics = save_statistics
         self._savedir = savedir
         self._measure = measure
+        self._writer = writer
         self.verbose = verbose
         self._save_visualization = save_visualization
-        self._n_clusters = kwargs['n_clusters'] if 'n_clusters' in kwargs else None
+        self._collect_time_statistics = collect_time_statistics
         self._statistics = {}
 
     @property
@@ -96,13 +99,16 @@ class ClusterMaker(ABC):
     def save_statistic(self, save_statistics):
         self._save_statistics = save_statistics
 
-    def make_superclients(self, clients: List[Client], representers: List[np.ndarray], sub_path: str = "", **sup_kwargs) \
+    def make_superclients(self, clients: List[Client], representers: List[np.ndarray], sub_path: str = "", one_time_clustering: bool = False, **sup_kwargs) \
             -> List[FedSeqSuperClient]:
         self._statistics.clear()
         num_classes = clients[0].num_classes
         assert all(num_classes == c.num_classes for c in clients), "Clients have different label space's dimension"
+        start = time.time()
         clusters = self._make_clusters(clients, representers)
+        end = time.time()
         sp = [c.make_superclient(self.verbose, num_classes=num_classes, **sup_kwargs) for c in clusters]
+        self._save_time_statistics(one_time_clustering, end-start, sp)
         if self._save_statistics:
             self._collect_clustering_statistics(clients, ("superclients", {i: s.num_ex_per_class()
                                                                        for i, s in enumerate(sp)}))
@@ -171,13 +177,9 @@ class ClusterMaker(ABC):
                 for s in superclients:
                     for c in s.clients:
                         clients_superclients[c.client_id] = s.client_id
-                
-
-                
                 if representers.shape[1] > 50:
                     reducer = PCA(n_components=50, svd_solver='full')
                     representers = reducer.fit_transform(representers)
-                
                 X = TSNE(n_components=2, learning_rate='auto',init='random').fit_transform(representers)
                 n_subplots = 3 if isinstance(clients[0].dataloader.dataset, CifarLocalDataset) and clients[0].dataloader.dataset.num_classes == 100 else 2
                 (fig, subplots) = plt.subplots(n_subplots, figsize=(15, 15))
@@ -204,7 +206,6 @@ class ClusterMaker(ABC):
                         ax.xaxis.set_major_formatter(NullFormatter())
                         ax.yaxis.set_major_formatter(NullFormatter())
                     ax.axis("tight")
-                
                 ax = subplots[1]
                 ax.set_title("representers vs superclient assigned to")
                 colors = cm.rainbow(np.linspace(0, 1, len(superclients)))
@@ -227,6 +228,19 @@ class ClusterMaker(ABC):
                     ax.axis("tight")
                 plt.savefig(f'{self._savedir}/class_vs_superclient_viz.png')
                 plt.clf()
+
+    def _save_time_statistics(self, one_time_clustering, time, sp):
+        if self._writer is not None and self._collect_time_statistics:
+            if not one_time_clustering:
+                self._writer.add_local_var('cluster_time', time)
+                self._writer.add_local_var('n_clustering', 1)
+                self._writer.add_local_var('largest_sc_#_examples', max([len(s) for s in sp]))
+                self._writer.add_local_var('largest_sc_#_clients', max([len(s.clients) for s in sp]))
+            else:
+                self._writer.add_summary_value('largest_sc_#_examples', max([len(s) for s in sp]))
+                self._writer.add_summary_value('largest_sc_#_clients', max([len(s.clients) for s in sp]))
+                self._writer.add_summary_value('cluster_time', time)
+                self._writer.add_summary_value('n_superclients', len(sp))
 
 class InformedClusterMaker(ClusterMaker):
     def __init__(self, measure, *args, **kwargs):

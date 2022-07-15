@@ -39,7 +39,7 @@ class FedSeq(FedBase):
         # list all clustering methods, the one used later for training and the ones for evaluation
         clustering_methods: Dict[str, ClusterMaker] = {
             m: eval(m)(**self.clustering, num_classes=self.dataset_num_classes,
-                       savedir=savedir, alpha=self.alpha) for m in
+                       savedir=savedir, n_clients=self.num_clients, writer=self.writer) for m in
             {*self.clustering.classnames_eval, self.clustering.classname}}
 
         if params.clustering.precomputed == None:
@@ -162,14 +162,13 @@ class FedSeq(FedBase):
             self.clustering_method = method
         log.info(f"Clustering with {self.clustering.classname} using {method.measure} for training")
         return method.make_superclients(self.clients, representers, sub_path=extracted, **self.training,
-                                        optimizer_class=self.optimizer, optimizer_args=self.optimizer_args)
+                                        optimizer_class=self.optimizer, optimizer_args=self.optimizer_args, one_time_clustering = (not self.keep_representers))
 
     def train_step(self):
         n_sample = max(int(self.fraction * self.num_superclients), 1)
         sample_set = np.random.choice(range(self.num_superclients), n_sample, replace=False)
         self.selected_clients = [self.superclients[k] for k in iter(sample_set)]
         self.send_data(self.selected_clients)
-
         for c in tqdm(self.selected_clients, desc=f'Training of selected superclients @ round {self._round}'):
             c.client_update(self.optimizer, self.optimizer_args, self.training.sequential_rounds, self.loss_fn)
         if self.dp:
