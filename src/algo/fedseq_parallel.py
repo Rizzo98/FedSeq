@@ -32,7 +32,7 @@ class FedSeqToParallel(FedSeq):
         super().train_step()
     
     def reassign_clients(self):
-        n_new_superclients = self.growth_func(self.alpha_growth, self.beta_growth, self._round + 1)
+        n_new_superclients = self._check_validity(self.growth_func(self.alpha_growth, self.beta_growth, self._round + 1))
         if  n_new_superclients > len(self.superclients):
             self.clustering_method._n_clusters = math.floor(self.num_clients / n_new_superclients)
             self.clustering_method._n_superclients = n_new_superclients
@@ -66,3 +66,8 @@ class FedSeqToParallel(FedSeq):
                 (wanted_sc, wanted_c) = client_clusters_distribution[c_label].pop(rand_index)
                 self.superclients[n_superclient].clients[i] = self.superclients[wanted_sc].clients[wanted_c]
             random.shuffle(self.superclients[n_superclient].clients)
+    
+    def _check_validity(self, n_superclients):
+        if n_superclients <= self.num_clients:
+            return n_superclients
+        return self.num_clients
