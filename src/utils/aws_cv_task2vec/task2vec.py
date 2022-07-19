@@ -271,9 +271,9 @@ class Task2Vec:
         data_loader = _get_loader(dataset, self.num_classes, **self.loader_opts)
 
         if optimizer == 'adam':
-            optimizer = torch.optim.Adam(self.model.fc.parameters(), lr=learning_rate, weight_decay=weight_decay)
+            optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=learning_rate, weight_decay=weight_decay)
         elif optimizer == 'sgd':
-            optimizer = torch.optim.SGD(self.model.fc.parameters(), lr=learning_rate, weight_decay=weight_decay)
+            optimizer = torch.optim.SGD(self.model.classifier.parameters(), lr=learning_rate, weight_decay=weight_decay)
         else:
             raise ValueError(f'Unsupported optimizer {optimizer}')
 
@@ -283,11 +283,14 @@ class Task2Vec:
             for data, target in data_loader:
                 optimizer.zero_grad()
                 output = self.model.classifier(data)
-                loss = loss_fn(self.model.classifier(data), target)
+                if output.ndim > 2: #to calculate x-token Centropy for transformers output
+                    target = target.view(-1)
+                    output = output.view((-1, output.size(-1)))
+                loss = loss_fn(output, target)
                 error = get_error(output, target)
                 loss.backward()
                 optimizer.step()
-                metrics.update(n=data.size(0), loss=loss.item(), error=error)
+                metrics.update(n=target.size(0), loss=loss.item(), error=error)
             logging.info(f"[epoch {epoch}]: " + "\t".join(f"{k}: {v}" for k, v in metrics.avg.items()))
 
     def extract_embedding(self, model: ProbeNetwork):
@@ -337,7 +340,12 @@ def _get_loader(trainset, num_classes, testset=None, batch_size=64, num_workers=
     elif hasattr(trainset, 'targets'):
         labels = trainset.targets
     else:
-        labels = list(trainset.tensors[1].cpu().numpy())
+        if trainset.tensors[1].ndim > 1:
+            labels = trainset.tensors[1][:,-1] #transformers want labels for each input token, here we only consider the last one
+        else:
+            labels = trainset.tensors[1]
+        labels = list(labels.cpu().numpy())
+    
     class_count = np.eye(num_classes)[labels].sum(axis=0)
     weights = 1. / class_count[labels] / num_classes
     weights /= weights.sum()

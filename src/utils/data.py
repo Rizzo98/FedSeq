@@ -319,7 +319,7 @@ def create_using_dirichlet_distr(train_img, test_img, train_label, test_label,
 
     return local_datasets, test_dataset
 
-def dataset_from_dataloader(data_loader, intended_channels):
+def dataset_from_dataloader(data_loader, intended_channels, extend_labels):
     data, labels = next(iter(data_loader))
     if data.ndim == 4: #image
         if data.shape[1] > intended_channels:
@@ -333,5 +333,13 @@ def dataset_from_dataloader(data_loader, intended_channels):
                     labels = torch.cat((labels, y))
             dataset = torch.utils.data.TensorDataset(data, labels)
             return dataset
+    elif extend_labels:
+        labels = torch.cat((data[:,1:], labels.reshape((-1,1))), dim=-1)
+        for i, (x, y) in enumerate(data_loader):
+            if i!=0:
+                data = torch.vstack((data, x))
+                labels = torch.vstack((labels, torch.cat((x[:,1:], y.reshape((-1,1))), dim=-1)))
+        dataset = torch.utils.data.TensorDataset(data, labels)
+        return dataset   
     dataset = data_loader.dataset
     return dataset

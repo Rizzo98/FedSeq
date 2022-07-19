@@ -84,10 +84,10 @@ class ClientEvaluator:
             return self.__get_prediction(client, save_representers)
         elif to_extract == "task2vec":
             if self.task2vec_pn != 'rnn':
-                self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method)
+                self.task2vec = t2v.Task2Vec(copy.deepcopy(self.model), max_samples=None, method=self.task2vec_method, classifier_opts=self.model.classifier_opts)
             else:
                 self.task2vec = t2v.Task2Vec(client.model, max_samples=None, method=self.task2vec_method, classifier_opts={'epochs':0})
-            return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.in_channels)).hessian
+            return self.task2vec.embed(dataset_from_dataloader(client.dataloader,self.model.in_channels, self.model.extend_labels)).hessian
         elif to_extract == "classDistribution":
             return self.__get_class_distribution(client.dataloader.dataset)
         else:
