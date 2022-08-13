@@ -51,7 +51,8 @@ class GreedyClusterMaker(InformedClusterMaker):
                     n_clusters += 1
                     cluster = ClientCluster(n_clusters, conf_len, log)
         self._check_redistribution(cluster, clusters)
-        self._collect_clustering_statistics(clients, ("clusters", [c.clients_id() for c in clusters]))
+        if self._save_statistics:
+            self._collect_clustering_statistics(clients, ("clusters", [c.clients_id() for c in clusters]))
         return clusters
     
     def requires_incompatibility_check(self) -> bool:

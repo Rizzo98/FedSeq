@@ -1,10 +1,10 @@
 defaults:
-  - model: lenet
+  - model: soverflow
   - algo: fedseq
-  - dataset: cifar10
+  - dataset: soverflow_niid
   - _self_
 
-n_round: 2500
+n_round: 1500
 device: 'cuda:0'
 
 seed: 2021
@@ -22,7 +22,7 @@ wandb:
   restart_from_run: null #run_id/null
   run_suffix: null #null/n.times this run is being repeated
   entity: "fedseq-thesis"
-  tags: ["federated comparison"]
+  tags: ["fakeruns"]
   server_model:
     save_every_n_rounds: False
     tot_round: 2

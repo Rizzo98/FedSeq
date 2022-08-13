@@ -9,15 +9,15 @@ algo:
   classname: FedSeq
   params:
     clustering:
-      precomputed: null #path to superclients or null
+      precomputed: './output/fedseq/2022-08-10_12-17-37/superclients.pkl' #path to superclients or null
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
       disomogeneity_measures: ["gini", "kullback", "scipy_kullback"] #measures that apply only to probability distributions
-      classname: ICGClusterMaker
-      max_clients: 11
-      min_examples: 2060
-      measure: euclidean
-      ICG_n_superclients: 10
+      classname: GreedyClusterMaker
+      max_clients: 25
+      min_examples: 8500
+      measure: normalized_cosine
+      ICG_n_superclients: 29
       save_statistics: False
       verbose: False
       save_visualization: False
@@ -26,12 +26,12 @@ algo:
       precomputed: null #path to representers or null
       extract_eval : []
       epochs: 10
-      extract: "confidence" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
+      extract: "task2vec" # classifierAll classifierLast or classifierLast2 or confidence or classifierAll
       extract_prop_distr: ["confidence"] #methods that extract probability distributions
       variance_explained: 0.9 #percentage of variance explained
       task2vec:
         method: 'montecarlo' #either variational or montecarlo method
-        probe_network: 'resnet18' #either resnet18 or resnet34 for now
+        probe_network: 'charGPT' #either resnet18 or resnet34 for now
     training:
       average_model: False
       sequential_rounds: 1 #number of sequential iterations through superclients' clients

@@ -22,7 +22,7 @@ def get_dataset(requested_dataset, **kwargs):
                       "emnist_niid_subset": get_emnist_data,
                       "emnist_iid": get_emnist_data,
                       "soverflow_niid": get_soverflow_data,
-                      "soverflow_iid": get_soverflow_data,
+                      "soverflow_iid": get_soverflow_data
                       }
     dataset_transformation = {"cifar10": cifar_transform,
                               "cifar100": cifar_transform,
@@ -170,20 +170,26 @@ def get_soverflow_data(**kwargs):
     datasets_path = os.path.join(os.getcwd(),'datasets','stackoverflow')
     if kwargs['dataset_name']=='soverflow_niid':
         train_dir = os.path.join(datasets_path, 'train', 'soverflow_niid')
+        #train_dir = os.path.join(datasets_path, 'train', 'soverflow_niid', 'textual_dataset')
     elif kwargs['dataset_name']=='soverflow_iid':
         train_dir = os.path.join(datasets_path, 'train', 'soverflow_iid')
     files = os.listdir(train_dir)
     files = [f for f in files if f.endswith('.json')]
     train_data = []
     train_labels = []
-    if kwargs['device'] == 'cpu':
-        files = files[:4]
-    for f in tqdm(files[:4],desc='Loading training files'):
+    if len(files) > 8:
+        files = ['train_0.json', 'train_1.json', 'train_2.json', 'train_3.json']
+    for f in tqdm(files,desc='Loading training files'):
         file = open(os.path.join(train_dir, f))
         training_dict = json.load(file)
         train_data += training_dict['x']
         train_labels += training_dict['y']
         file.close()
+    #fatto per far corrispondere l'ordine dei due dataset di stackoverflow, si puo tranquillamente poi rimuovere
+    ordered_data = train_data[30000:35000] + train_data[10000:15000] + train_data[35000:] + train_data[15000:20000] + train_data[25000:30000] + train_data[5000:10000] + train_data[20000:25000] + train_data[:5000]
+    ordered_labels = train_labels[30000:35000] + train_labels[10000:15000] + train_labels[35000:] + train_labels[15000:20000] + train_labels[25000:30000] + train_labels[5000:10000] + train_labels[20000:25000] + train_labels[:5000]
+    train_data = ordered_data
+    train_labels = ordered_labels
     test_dir = os.path.join(datasets_path, 'test')
     files = os.listdir(test_dir)
     files = [f for f in files if f.endswith('.json')]

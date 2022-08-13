@@ -146,8 +146,8 @@ class FedBase(Algo):
                     self.writer.add_summary_value('total_cluster_time', str(datetime.timedelta(seconds=(self.clustering_method._writer.local_store['cluster_time']))))
                     self.writer.add_summary_value('avg_cluster_time', str(datetime.timedelta(seconds=(self.clustering_method._writer.local_store['cluster_time']/self.clustering_method._writer.local_store['n_clustering']))))
                     self.writer.add_summary_value('#_times_clustering', self.clustering_method._writer.local_store['n_clustering'])
-                    self.writer.add_summary_value('avg_largest_sc_#_examples', self.clustering_method._writer.local_store['largest_sc_#_examples']/self.clustering_method._writer.local_store['n_clustering'])
-                    self.writer.add_summary_value('avg_largest_sc_#_clients', self.clustering_method._writer.local_store['largest_sc_#_clients']/self.clustering_method._writer.local_store['n_clustering'])
+                    self.writer.add_summary_value('avg_largest_sc_#_examples', self.avg_largest_sc_n_examples/self.num_round)
+                    self.writer.add_summary_value('avg_largest_sc_#_clients', self.avg_largest_sc_n_clients/self.num_round)
     def save_clients_model(self):
         if self.save_models:
             for c in self.clients:

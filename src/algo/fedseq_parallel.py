@@ -1,5 +1,4 @@
 import math
-from typing import List
 from src.algo import FedSeq
 import numpy as np
 import random
@@ -19,6 +18,9 @@ class FedSeqToParallel(FedSeq):
         self.beta_growth = params.beta_growth
         self.growth_func = growth_functions[params.growth_func]
         self.avg_n_superclients = 0
+        if self.clustering.collect_time_statistics:
+            self.avg_largest_sc_n_examples = 0
+            self.avg_largest_sc_n_clients = 0
         with open_dict(params):
             params.clustering.n_clusters = math.floor(params.common.K / self.growth_func(self.alpha_growth, self.beta_growth, 1))
             params.clustering.n_superclients = self.growth_func(self.alpha_growth, self.beta_growth, 1)
@@ -29,6 +31,9 @@ class FedSeqToParallel(FedSeq):
         self.reassign_clients()
         self.avg_n_superclients += self.num_superclients
         self.writer.add_scalar("n_superclients", self.num_superclients, self._round + 1)
+        if self.clustering.collect_time_statistics:
+            self.avg_largest_sc_n_examples += self.writer.local_store['largest_sc_#_examples']
+            self.avg_largest_sc_n_clients += self.writer.local_store['largest_sc_#_clients']
         super().train_step()
     
     def reassign_clients(self):
@@ -45,7 +50,7 @@ class FedSeqToParallel(FedSeq):
                 self._shuffle_current_superclients()
         '''        
             
-    def _shuffle_current_superclients(self):
+    def _shuffle_current_superclients(self): #deprecated
         if self.clustering.classname != 'RandomClusterMaker':
             self._redistribute_clients_based_on_clusters()
         else:
@@ -53,7 +58,7 @@ class FedSeqToParallel(FedSeq):
                                         optimizer_class=self.optimizer, optimizer_args=self.optimizer_args)
             
     
-    def _redistribute_clients_based_on_clusters(self):
+    def _redistribute_clients_based_on_clusters(self): #deprecated
         client_clusters_distribution = {i: [] for i in range(self.clustering_method._n_clusters)}
         client_superclients_distribution = {i: [] for i in range(len(self.superclients))}
         for n_superclient, superclient in enumerate(self.superclients):

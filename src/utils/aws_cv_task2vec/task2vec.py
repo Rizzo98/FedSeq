@@ -340,11 +340,12 @@ def _get_loader(trainset, num_classes, testset=None, batch_size=64, num_workers=
     elif hasattr(trainset, 'targets'):
         labels = trainset.targets
     else:
-        if trainset.tensors[1].ndim > 1:
-            labels = trainset.tensors[1][:,-1] #transformers want labels for each input token, here we only consider the last one
-        else:
-            labels = trainset.tensors[1]
-        labels = list(labels.cpu().numpy())
+        labels = trainset.tensors[1]
+        labels = labels.cpu().numpy()
+    if labels.ndim > 1:
+        labels = labels[:,-1] #transformers want labels for each input token, here we only consider the last one
+    labels = list(labels)
+        
     
     class_count = np.eye(num_classes)[labels].sum(axis=0)
     weights = 1. / class_count[labels] / num_classes

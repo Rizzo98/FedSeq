@@ -6,7 +6,7 @@ algo:
   type: fedseq_parallel
   classname: FedSeqToParallel
   params:
-    growth_func: linear
+    growth_func: log
     alpha_growth: 2
-    beta_growth: 8
+    beta_growth: 50
     keep_representers: True

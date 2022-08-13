@@ -17,7 +17,7 @@ import torch.utils.model_zoo as model_zoo
 import torchvision.models.resnet as resnet
 import torch
 import torch.nn as nn
-
+from transformers import GPT2Tokenizer
 from .task2vec import ProbeNetwork
 
 _MODELS = {}
@@ -240,7 +240,7 @@ class GPT(ProbeNetwork):
             ln_f = nn.LayerNorm(config.n_embd),
         ))
         self.lm_head = nn.Linear(config.n_embd, config.client_vocab_size, bias=False)
-        self.layers = [self.lm_head] #we are gonna use all the model, so it's here just for compatibility
+        self.layers = [block for block in self.transformer.h] + [self.transformer.ln_f, self.lm_head] #we are gonna use all the model, so it's here just for compatibility
         # init all weights, and apply a special scaled init to the residual projections, per GPT-2 paper
         self.apply(self._init_weights)
         for pn, p in self.named_parameters():
@@ -278,15 +278,18 @@ class GPT(ProbeNetwork):
         config.model_type = model_type
         config.vocab_size = 50257 # openai's model vocabulary
         config.block_size = 1024  # openai's model block_size
+        config.client_vocab_size = 50257
         model = GPT(config)
+        model.apply(model._init_weights)
         sd = model.state_dict()
+        sd = {k:v for k,v in sd.items() if 'lm_head' not in k}
 
         # init a huggingface/transformers model
         model_hf = GPT2LMHeadModel.from_pretrained(model_type)
         sd_hf = model_hf.state_dict()
 
         # copy while ensuring all of the parameters are aligned and match in names and shapes
-        keys = [k for k in sd_hf if not k.endswith('attn.masked_bias')] # ignore these
+        keys = [k for k in sd_hf if (not k.endswith('attn.masked_bias') and 'lm_head' not in k)] # ignore these
         transposed = ['attn.c_attn.weight', 'attn.c_proj.weight', 'mlp.c_fc.weight', 'mlp.c_proj.weight']
         # basically the openai checkpoints use a "Conv1D" module, but we only want to use a vanilla nn.Linear.
         # this means that we have to transpose these weights when we import them
@@ -306,20 +309,21 @@ class GPT(ProbeNetwork):
         return model
 
     def forward(self, idx, start_from=0):
-        device = idx.device
-        b, t = idx.size()
-        assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
-        pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
+        if start_from == 0:
+            device = idx.device
+            b, t = idx.size()
+            assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
+            pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
 
-        # forward the GPT model itself
-        tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
-        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
-        x = self.transformer.drop(tok_emb + pos_emb)
-        for block in self.transformer.h:
-            x = block(x)
-        x = self.transformer.ln_f(x)
-        logits = self.lm_head(x)
-        logits = logits.view(-1, logits.size(-1))
+            # forward the GPT model itself
+            tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
+            pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
+            x = self.transformer.drop(tok_emb + pos_emb)
+        else:
+            x = idx
+        for layer in self.layers[start_from:]:
+            x = layer(x)
+        logits = x.view(-1, x.size(-1))
         return logits
 
     @property
@@ -342,6 +346,8 @@ def resnet18(pretrained=False, num_classes=1000):
     model.in_channels = 3
     model.extend_labels = False
     model.classifier_opts = {}
+    model.skip_layers = 0
+    model.loader_opts = {}
     return eval_resnet_bn_layers(model)
 
 @_add_model
@@ -359,6 +365,8 @@ def resnet34(pretrained=False, num_classes=1000):
     model.in_channels = 3
     model.extend_labels = False
     model.classifier_opts = {}
+    model.skip_layers = 0
+    model.loader_opts = {}
     return eval_resnet_bn_layers(model)
 
 @_add_model
@@ -381,7 +389,7 @@ def charGPT(pretrained=False, num_classes=1000):
     config.model.model_type = 'gpt-mini'
     config.model.vocab_size = 24895
     config.model.block_size = 80
-    config.model.client_vocab_size = num_classes+25
+    config.model.client_vocab_size = num_classes
     model = GPT(config.model)
     if pretrained:
         PATH = './src/utils/aws_cv_task2vec/pretrained_models/chargpt_wikipedia_model.pt'
@@ -395,11 +403,20 @@ def charGPT(pretrained=False, num_classes=1000):
     model.in_channels = None
     model.extend_labels = True
     model.classifier_opts = {'epochs':20}
+    model.skip_layers = 0
+    model.loader_opts = {}
     return model
 
 @_add_model
-def minGPT(pretrained=False):
-    pass
+def minGPT(pretrained=True, num_classes=1000):
+    model = GPT.from_pretrained(model_type='gpt2')
+    model.train()
+    model.in_channels = None
+    model.extend_labels = False
+    model.classifier_opts = {'epochs':3}
+    model.skip_layers = 10
+    model.loader_opts = {'num_samples':1000}
+    return model
     
 def get_model(model_name, pretrained=False, num_classes=1000):
     try:
