@@ -19,7 +19,7 @@ class KMeansClusterMaker(InformedClusterMaker):
 
     def _make_clusters(self, clients: List[Client], representers: List[np.ndarray]) -> \
             List[ClientCluster]:
-        k = self.num_classes if self._n_clusters is None else self._n_clusters
+        k = self.num_classes if (not hasattr(self, '_n_clusters') or self._n_clusters is None) else self._n_clusters
         k_means = KMeans(k).fit(representers)
         for i, c in enumerate(clients):
             c.cluster_id = k_means.labels_[i]
@@ -45,7 +45,7 @@ class KMeansClusterMaker(InformedClusterMaker):
         num_clients_to_assign = np.sum([len(c) for c in k_clusters])
         n_superclient = 0
         k_clusters = copy.deepcopy(k_clusters)
-        if self._n_clusters is None:
+        if (not hasattr(self, '_n_clusters') or self._n_clusters is None):
             clusters_iterator = it.cycle(k_clusters)
             cluster = ClientCluster(n_superclient, logger=log)
             while num_clients_to_assign != 0:

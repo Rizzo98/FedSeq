@@ -18,14 +18,13 @@ class FedSeqToParallel(FedSeq):
         self.beta_growth = params.beta_growth
         self.growth_func = growth_functions[params.growth_func]
         self.avg_n_superclients = 0
-        if self.clustering.collect_time_statistics:
-            self.avg_largest_sc_n_examples = 0
-            self.avg_largest_sc_n_clients = 0
         with open_dict(params):
             params.clustering.n_clusters = math.floor(params.common.K / self.growth_func(self.alpha_growth, self.beta_growth, 1))
             params.clustering.n_superclients = self.growth_func(self.alpha_growth, self.beta_growth, 1)
         super().__init__(model_info, params, device, dataset, output_suffix, savedir, writer, wandbConf)
-        
+        if self.clustering.collect_time_statistics:
+            self.avg_largest_sc_n_examples = 0
+            self.avg_largest_sc_n_clients = 0
     
     def train_step(self):
         self.reassign_clients()
@@ -48,8 +47,7 @@ class FedSeqToParallel(FedSeq):
         else:
             if self._round > 0:
                 self._shuffle_current_superclients()
-        '''        
-            
+        '''    
     def _shuffle_current_superclients(self): #deprecated
         if self.clustering.classname != 'RandomClusterMaker':
             self._redistribute_clients_based_on_clusters()

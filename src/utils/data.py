@@ -128,25 +128,25 @@ def get_emnist_data(**kwargs):
     train_data = []
     train_labels = []
     if '_subset' in kwargs['dataset_name']:
-        files = files[:4]
+        #files = ['train_0.json', 'train_1.json', 'train_2.json', 'train_3.json']
+        files = ['train_14.json', 'train_25.json', 'train_21.json', 'train_10.json']
     for f in tqdm(files,desc='Loading training files'):
         training_dict = json.load(open(os.path.join(train_dir, f)))
         train_data += training_dict['x']
         train_labels += training_dict['y']
+    if '_subset' in kwargs['dataset_name']:
+        #_,train_data,train_labels = [list(v) for v in zip(*sorted(zip([-len(set(v)) for v in train_labels],train_data,train_labels)))]
+        train_data, train_labels = train_data[:368], train_labels[:368]
+        print(f'Kept clients from files {[f for f in files]}.')
     test_dir = os.path.join(datasets_path, 'test')
     files = os.listdir(test_dir)
     files = [f for f in files if f.endswith('.json')]
     test_data = []
     test_labels = []
-    #if '_subset' in kwargs['dataset_name']:
-    #    files = files[:3]
     for f in tqdm(files,desc='Loading test files'):
         test_dict = json.load(open(os.path.join(test_dir, f)))
         test_data += test_dict['x']
         test_labels += test_dict['y']
-    if '_subset' in kwargs['dataset_name']:
-        train_data, train_labels = train_data[:368], train_labels[:368]
-    #    test_data, test_labels = test_data[:8172], test_labels[:8172]
     return train_data, train_labels, test_data, test_labels
 
 def emnist_transform(centralized, train_x, train_y, test_x, test_y, **kwargs):
