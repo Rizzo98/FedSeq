@@ -11,11 +11,15 @@ log = logging.getLogger(__name__)
 
 
 class RandomClusterMaker(ClusterMaker):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._n_superclients = kwargs['n_superclients'] if 'n_superclients' in kwargs else None
+        self._n_clusters = kwargs['n_clusters'] if 'n_clusters' in kwargs else None
     def _make_clusters(self, clients: List[Client], representers: List[np.ndarray]) -> List[ClientCluster]:
         clusters: List[ClientCluster] = [] 
         s_clients = copy.copy(clients)
         np.random.shuffle(s_clients)
-        if self._n_clusters == None:
+        if (not hasattr(self, '_n_superclients') or self._n_superclients is None): 
             n_clusters = 0
             cluster = ClientCluster(n_clusters, logger=log)
             for c in s_clients:
@@ -30,7 +34,7 @@ class RandomClusterMaker(ClusterMaker):
             self._check_redistribution(cluster, clusters)
             self._collect_clustering_statistics(clients, ("clusters", [c.clients_id() for c in clusters]))
         else:
-            n_clusters = math.floor(len(s_clients)/self._n_clusters)
+            n_clusters = self._n_superclients
             curr_id = 0
             for cluster_id in range(n_clusters):
                 cluster = ClientCluster(cluster_id, logger=log)
