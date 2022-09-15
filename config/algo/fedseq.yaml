@@ -9,7 +9,7 @@ algo:
   classname: FedSeq
   params:
     clustering:
-      precomputed: './output/fedseq/2022-08-10_12-17-37/superclients.pkl' #path to superclients or null
+      precomputed: null #path to superclients or null
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
       disomogeneity_measures: ["gini", "kullback", "scipy_kullback"] #measures that apply only to probability distributions

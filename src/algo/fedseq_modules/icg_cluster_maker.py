@@ -28,6 +28,7 @@ class ICGClusterMaker(InformedClusterMaker):
         client_representers = list(zip(*client_representers))
         self.sampled_clients = list(client_representers[0])[:self.n_sampled_clients]
         self.sampled_representers = np.array(list(client_representers[1])[:self.n_sampled_clients])
+        remaining_clients = list(client_representers[0])[self.n_sampled_clients:]
         self._populate_assignment_matrix()
         iteration = 0
         while iteration == 0 or (iteration < self.n_max_iterations and self._obtainedDifferentAssignment()):
@@ -36,7 +37,7 @@ class ICGClusterMaker(InformedClusterMaker):
             self._solve_assignment_problem(costs)
             iteration += 1
         clusters = self._obtain_clusters()
-        groups = self._sample_from_clusters(clusters)
+        groups = self._sample_from_clusters(clusters, remaining_clients)
         return groups
 
     def _fix_centroids(self):
@@ -93,7 +94,7 @@ class ICGClusterMaker(InformedClusterMaker):
             clusters[i] = list(np.where(self.assigned_clients[i,:] == 1)[0])
         return clusters
     
-    def _sample_from_clusters(self, clusters):
+    def _sample_from_clusters(self, clusters, remaining_clients):
         groups : List[ClientCluster] = []
         for g in range(self.n_clients_x_cluster):
             group = ClientCluster(g, logger=log)
@@ -103,6 +104,9 @@ class ICGClusterMaker(InformedClusterMaker):
                 self.sampled_clients[client].cluster_id = cluster
                 group.add_client(self.sampled_clients[client])
             groups.append(group)
+        n_groups = len(groups)
+        for i in range(len(remaining_clients)):
+            groups[i % n_groups].add_client(remaining_clients[i])
         return groups
 
     def _obtainedDifferentAssignment(self):

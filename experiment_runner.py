@@ -1483,62 +1483,1074 @@ def main():
                                     ),
         
     ]
-    """
-    experiments = [ 
+    
+    experiments = [
+        FedExperiment.from_params("FedSeq - Cifar10 - task2vec",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            MultiParam.key("algo.params.common.C", [0.1, 0.2]),
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.evaluator.task2vec.method",
+                                        ['montecarlo', 'variational']),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "24:00:00"}
+                            ),
         
-        FedExperiment.from_params("Stackoverflow - fedseq save cluster from (confidence) Greedy kullback",
-                                      "",
-                                    Param("algo", "fedseq"),
-                                    Param("algo.params.evaluator.extract", "confidence"),
-                                    Param("algo.params.clustering.classname","GreedyClusterMaker"),
-                                    Param("algo.params.clustering.measure","kullback"),
-                                    Param("algo.params.evaluator.optim.args.lr",0.316227766),
-                                    Param("algo.params.evaluator.optim.args.weight_decay",0),
-                                    Param("algo.params.evaluator.epochs",5),
-                                    Param("algo.params.center_server.classname", "FedAvgCenterServer"),
-                                    Param("algo.params.save_representers",False),
-                                    Param("algo.params.save_superclients",True),
-                                    Param("algo.params.evaluator.precomputed","./datasets/stackoverflow/representers/confidence.pkl"),
-                                    Param("algo.params.common.C", "0.01"),
-                                    Param("algo.params.common.K", "40000"),
-                                    MultiParam.dict("algo.params.clustering",
-                                                    {"min_examples": [8500],
-                                                    "max_clients": [25]}),
-                                    Param("algo.params.common.B", "16"),
-                                    Param("device", "cuda:0"),
-                                    Param("wandb.client_datasets",False),
-                                    Param("wandb.superclient_datasets",False),
-                                    Param("n_round", 1500),
-                                    Param("do_train", False),
-                                    Param("model","soverflow"),
-                                    Param("algo.params.optim.args.lr",0.316227766),
-                                    Param("algo.params.optim.args.weight_decay",0),
-                                    Param("dataset", "soverflow_niid"),
-                                    runner_options={"--time": "80:00:00","--mem":"30GB"}
-                                    ),
-        FedExperiment.from_params("Stackoverflow - fedseq random ",
-                                            "",
-                                        Param("algo", "fedseq"),
-                                        Param("device", "cuda:0"),
-                                        Param("n_round", 1500),
-                                        Param("do_train", True),
-                                        Param("model","soverflow"),
-                                        Param("algo.params.optim.args.lr",0.316227766),
-                                        Param("algo.params.optim.args.weight_decay",0),
-                                        Param("dataset", "soverflow_niid"),
-                                        Param("algo.params.common.B", 16),
-                                        Param("algo.params.common.K", 40000),
-                                        Param("algo.params.common.C", 0.01),
-                                        Param("algo.params.evaluator.optim.args.lr",0.316227766),
-                                        Param("algo.params.evaluator.optim.args.weight_decay",0),
-                                        Param("algo.params.clustering.classname","RandomClusterMaker"),
-                                        Param("algo.params.clustering.min_examples",8500),
-                                        Param("algo.params.clustering.max_clients",25),
-                                        runner_options={"--time": "28:00:00","--mem":"18GB"}
-                                        ),
+        FedExperiment.from_params("FedSeq - Cifar100 - task2vec",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            MultiParam.key("algo.params.common.C", [0.1, 0.2]),
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.evaluator.task2vec.method",
+                                        ['montecarlo', 'variational']),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        
+
+                             
+    ]
+    
+    experiments = [
+        FedExperiment.from_params("FedSeq - Cifar10 - Confidence Greedy Kullback",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "18:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar10 - ClassifierLast Greedy Cosine",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "classifierLast"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "18:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 - Confidence Greedy Kullback",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "40:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 - ClassifierLast Greedy Cosine",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "classifierLast"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "40:00:00"}
+                            ),
+
+                             
+    ]
+    
+    experiments = [
+        FedExperiment.from_params("FedSeq - Cifar10 - task2vec C=0.1 montecarlo resnet34 - alpha 0.5",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C",  0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.evaluator.task2vec.method",
+                                        'montecarlo'),
+                            Param("algo.params.evaluator.task2vec.probe_network",
+                                        'resnet34'),
+                            Param("algo.params.common.alpha",
+                            0.5),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "24:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar10 - task2vec C=0.1 variational - alpha 0.2 and 0.5",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C",  0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.evaluator.task2vec.method",
+                                        'variational'),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            MultiParam.key("algo.params.common.alpha",
+                            [0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "24:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar10 - task2vec C=0.2 - alpha 0.2 and 0.5",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C",  0.2),
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.evaluator.task2vec.method",
+                                        ['montecarlo', 'variational']),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            MultiParam.key("algo.params.common.alpha",
+                            [0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "24:00:00"}
+                            ),
+        
+        FedExperiment.from_params("FedSeq - Cifar100 - task2vec - alpha 0.2 and 0.5",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            MultiParam.key("algo.params.common.C", [0.1, 0.2]),
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.evaluator.task2vec.method",
+                                        ['montecarlo', 'variational']),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0.2, 0.5]),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 C=0.1- task2vec - alpha 0 failed ones",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.evaluator.task2vec.method",
+                                        'variational'),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            Param("algo.params.common.B", 64),
+                            Param("algo.params.common.alpha",
+                                        0),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 C=0.2- task2vec MC - alpha 0 failed ones",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.2),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.evaluator.task2vec.method",
+                                        'montecarlo'),
+                            MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                        ['resnet18', 'resnet34']),
+                            Param("algo.params.common.B", 64),
+                            Param("algo.params.common.alpha",
+                                        0),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 C=0.2- task2vec Var - alpha 0 failed ones",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "task2vec"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","normalized_cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.2),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.evaluator.task2vec.method",
+                                        'variational'),
+                            Param("algo.params.evaluator.task2vec.probe_network",
+                                        'resnet34'),
+                            Param("algo.params.common.B", 64),
+                            Param("algo.params.common.alpha",
+                                        0),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar10 - Confidence Greedy Kullback",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "18:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar10 - ClassifierLast Greedy Cosine",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "classifierLast"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "18:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 - Confidence Greedy Kullback",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "40:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 - ClassifierLast Greedy Cosine",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "classifierLast"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "40:00:00"}
+                            ),
+        
+        
+
+                             
+    ]
+    
+    
+    experiments = [
+        FedExperiment.from_params("FedSeqInter - Cifar10 - confidence kullback - c=0.1",
+                            "",
+                            Param("algo", "fedseq_inter"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C",  0.1),
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",  [0,0.2,0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "24:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeqInter - Cifar10 - classifierlast cosine - c=0.1",
+                            "",
+                            Param("algo", "fedseq_inter"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "classifierLast"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C",  0.1),
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",  [0,0.2,0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "24:00:00"}
+                            ),
+
+        FedExperiment.from_params("FedSeqInter - Cifar100 - confidence kullback - c=0.1",
+                            "",
+                            Param("algo", "fedseq_inter"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0,0.2, 0.5]),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeqInter - Cifar100 - classifierLast cosine - c=0.1",
+                            "",
+                            Param("algo", "fedseq_inter"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "classifierLast"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","cosine"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0,0.2, 0.5]),
+                            runner_options={"--time": "48:00:00"}
+                            ),
+        
+        FedExperiment.from_params("FedAvg - cifar10 c=0.1",
+                            "",
+                            Param("algo", "fedavg"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            runner_options={"--time": "20:00:00"}
+                            ),
+        FedExperiment.from_params("FedAvg - cifar100 c=0.1",
+                            "",
+                            Param("algo", "fedavg"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            runner_options={"--time": "45:00:00"}
+                            ),
+        FedExperiment.from_params("scaffold - cifar10 c=0.1",
+                            "",
+                            Param("algo", "scaffold"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            runner_options={"--time": "26:00:00"}
+                            ),
+        FedExperiment.from_params("scaffold - cifar100 c=0.1",
+                            "",
+                            Param("algo", "scaffold"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            runner_options={"--time": "50:00:00"}
+                            ),
+        FedExperiment.from_params("fedprox - cifar10 c=0.1",
+                            "",
+                            Param("algo", "fedprox"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            MultiParam.key("algo.params.optim.args.mu",
+                                        [0.01, 0.001, 0.0001]),
+                            runner_options={"--time": "26:00:00"}
+                            ),
+        FedExperiment.from_params("fedprox - cifar100 c=0.1",
+                            "",
+                            Param("algo", "fedprox"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            MultiParam.key("algo.params.optim.args.mu",
+                                        [0.01, 0.001, 0.0001]),
+                            runner_options={"--time": "50:00:00"}
+                            ),
+        FedExperiment.from_params("feddyn - cifar10 c=0.1",
+                            "",
+                            Param("algo", "feddyn"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            MultiParam.key("algo.params.alpha",
+                                        [0.001, 0.01, 0.015]),
+                            runner_options={"--time": "26:00:00"}
+                            ),
+        
+        FedExperiment.from_params("feddyn - cifar100 c=0.2 alpha=0",
+                            "",
+                            Param("algo", "feddyn"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.2),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            Param("algo.params.common.alpha", 0),
+                            MultiParam.key("algo.params.alpha",
+                                        [0.001, 0.01, 0.015]),
+                            runner_options={"--time": "50:00:00"}
+                            ),
+
+
+                            
+        
+        
+        
+          
+    ]
+    
+    experiments = [ 
+        FedExperiment.from_params("FedSeq - Cifar10 - Confidence Greedy Kullback",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","scipy_kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 10000),
+                            Param("dataset", "cifar10"),
+                            MultiParam.key("algo.params.common.C", [0.1, 0.2]),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "18:00:00"}
+                            ),
+        FedExperiment.from_params("FedSeq - Cifar100 - Confidence Greedy Kullback",
+                            "",
+                            Param("algo", "fedseq"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr", 0.01),#
+                            Param("algo.params.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.optim.args.lr",0.01),#
+                            Param("algo.params.evaluator.optim.args.weight_decay",4e-4),#
+                            Param("algo.params.evaluator.extract", "confidence"),
+                            Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                            Param("algo.params.clustering.measure","scipy_kullback"),
+                            Param("algo.params.clustering.min_examples", 800),#
+                            Param("algo.params.clustering.max_clients", 11),#
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            MultiParam.key("algo.params.common.C", [0.1, 0.2]),#
+                            Param("algo.params.common.K", 500),
+                            MultiParam.key("algo.params.common.alpha",
+                                        [0, 0.2, 0.5]),
+                            Param("algo.params.common.B", 64),
+                            runner_options={"--time": "40:00:00"}
+                            ),
+    ]
+    
+    experiments = [ 
+        FedExperiment.from_params("FedSeq - shakespeare - task2vec",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 250),
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                Param("algo.params.clustering.measure",
+                                    "normalized_cosine"),
+                                MultiParam.key("dataset", ["shakespeare_niid","shakespeare_iid"]),
+                                MultiParam.key("algo.params.common.C", [0.1, 0.2]),
+                                Param("algo.params.clustering.min_examples", "8000"),
+                                Param("algo.params.clustering.max_clients", "5"),
+                                Param("algo.params.common.K", 100),
+                                MultiParam.key("algo.params.evaluator.task2vec.method",
+                                            ['montecarlo', 'variational']),
+                                Param("algo.params.evaluator.task2vec.probe_network",
+                                            'rnn'),
+                                Param("algo.params.common.B", 100),
+                                Param("algo.params.optim.args.lr", 1),#
+                                Param("algo.params.optim.args.weight_decay",1e-4),#
+                                Param("algo.params.evaluator.optim.args.lr",1),#
+                                Param("algo.params.evaluator.optim.args.weight_decay",1e-4),#
+                                runner_options={"--time": "02:30:00"}
+                                ),
+        
         
     ]
-    r: Runner = SlurmRunner(experiment_config.get("seed"), 0.11, train_time_overshoot=0.04,
+    
+    experiments = [ 
+        FedExperiment.from_params("feddyn - cifar10 c=0.1",
+                            "",
+                            Param("algo", "feddyn"),
+                            Param("device", "cuda:0"),
+                            Param("model","lenet"),
+                            Param("algo.params.optim.args.lr",0.01),
+                            Param("algo.params.optim.args.weight_decay",4e-4),
+                            Param("n_round", 20000),
+                            Param("dataset", "cifar100"),
+                            Param("algo.params.common.C", 0.1),
+                            Param("algo.params.common.K", 500),
+                            Param("algo.params.common.B", 64),
+                            MultiParam.key("algo.params.common.alpha", [0, 0.2, 0.5]),
+                            MultiParam.key("algo.params.alpha",
+                                        [0.001, 0.01, 0.015]),
+                            runner_options={"--time": "50:00:00"}
+                            ),
+        
+        
+    ]
+    """
+    """
+    experiments = [ 
+        FedExperiment.from_params("FedSeq - femnist - task2vec",
+                                  "",
+                                Param("algo", "fedseq"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.clustering.classname","GreedyClusterMaker"),
+                                Param("algo.params.clustering.measure",
+                                    "normalized_cosine"),
+                                MultiParam.key("dataset", ["emnist_niid","emnist_iid"]),
+                                Param("model", "emnist"),
+                                MultiParam.key("algo.params.common.C", [0.1, 0.2, 0.05, 0.02]),
+                                Param("algo.params.clustering.min_examples", "4120"),
+                                Param("algo.params.clustering.max_clients", "21"),
+                                Param("algo.params.common.K", 3500),
+                                MultiParam.key("algo.params.evaluator.task2vec.method",
+                                            ['montecarlo', 'variational']),
+                                MultiParam.key("algo.params.evaluator.task2vec.probe_network",
+                                            ['resnet18', 'resnet34']),
+                                Param("algo.params.common.B", 20),
+                                Param("algo.params.optim.args.lr", 0.01),#
+                                Param("algo.params.optim.args.weight_decay",0),#
+                                Param("algo.params.evaluator.optim.args.lr",0.01),#
+                                Param("algo.params.evaluator.optim.args.weight_decay",0),#
+                                runner_options={"--time": "20:00:00"}
+                                ),
+        
+        
+    ]
+    experiments = [ 
+        FedExperiment.from_params("logFSParallel - femnist subset",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 500),
+                                Param("do_train", True),
+                                Param("algo.params.evaluator.extract", "classDistribution"),
+                                Param("algo.params.clustering.classname", "ICGClusterMaker"),
+                                Param("algo.params.clustering.measure", "euclidean"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                Param("dataset", "emnist_niid_subset"),
+                                Param("model", "emnist"),
+                                Param("algo.params.common.K", 368),
+                                Param("algo.params.common.B", 5),
+                                Param("algo.params.common.C", 0.3),
+                                Param("algo.params.optim.args.lr", 0.01),
+                                Param("algo.params.optim.args.weight_decay", 0),
+                                Param("algo.params.growth_func", "log"),
+                                MultiParam.key("algo.params.alpha_growth", [1, 2, 4, 6, 8, 10]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 30, 40, 50]),
+                                runner_options={"--time": "05:00:00"}
+                                ),
+        FedExperiment.from_params("linFSParallel - femnist subset",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 500),
+                                Param("do_train", True),
+                                Param("algo.params.evaluator.extract", "classDistribution"),
+                                Param("algo.params.clustering.classname", "ICGClusterMaker"),
+                                Param("algo.params.clustering.measure", "euclidean"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                Param("dataset", "emnist_niid_subset"),
+                                Param("model", "emnist"),
+                                Param("algo.params.common.K", 368),
+                                Param("algo.params.common.B", 5),
+                                Param("algo.params.common.C", 0.3),
+                                Param("algo.params.optim.args.lr", 0.01),
+                                Param("algo.params.optim.args.weight_decay", 0),
+                                Param("algo.params.growth_func", "linear"),
+                                MultiParam.key("algo.params.alpha_growth", [1e-2, 2e-2, 4e-2, 6e-2, 8e-2, 10e-2]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 30, 40, 50]),
+                                runner_options={"--time": "05:00:00"}
+                                ),
+        FedExperiment.from_params("expFSParallel - femnist subset",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 500),
+                                Param("do_train", True),
+                                Param("algo.params.evaluator.extract", "classDistribution"),
+                                Param("algo.params.clustering.classname", "ICGClusterMaker"),
+                                Param("algo.params.clustering.measure", "euclidean"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                Param("dataset", "emnist_niid_subset"),
+                                Param("model", "emnist"),
+                                Param("algo.params.common.K", 368),
+                                Param("algo.params.common.B", 5),
+                                Param("algo.params.common.C", 0.3),
+                                Param("algo.params.optim.args.lr", 0.01),
+                                Param("algo.params.optim.args.weight_decay", 0),
+                                Param("algo.params.growth_func", "exp"),
+                                MultiParam.key("algo.params.alpha_growth", [0.6e-2, 1.2e-2, 1.8e-2, 2.4e-2, 3e-2, 3.6e-2]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 30, 40, 50]),
+                                runner_options={"--time": "05:00:00"}
+                                ),
+        
+        
+    ]
+
+    
+    
+    experiments = [ 
+        FedExperiment.from_params("Shakespeare - log",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("dataset", "shakespeare_niid"),
+                                Param("model", "shakespeare"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 250),
+                                Param("do_train", True),
+                                
+                                Param("algo.params.optim.args.lr", 1),
+                                Param("algo.params.optim.args.weight_decay", 0.0001),
+
+                                Param("algo.params.common.K", 100),
+                                Param("algo.params.common.B", 100),
+                                Param("algo.params.common.C", 0.2),
+
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.evaluator.task2vec.method", "montecarlo"),
+                                Param("algo.params.evaluator.task2vec.probe_network", "charGPT"),
+                                MultiParam.key("algo.params.clustering.classname", ["ICGClusterMaker", "RandomClusterMaker"]),
+                                Param("algo.params.clustering.measure", "normalized_cosine"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                    
+                                Param("algo.params.growth_func", "log"),
+                                MultiParam.key("algo.params.alpha_growth", [0.5, 1, 2]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 25]),
+                                runner_options={"--time": "12:00:00"}
+                                ),
+         FedExperiment.from_params("Shakespeare - linear",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("dataset", "shakespeare_niid"),
+                                Param("model", "shakespeare"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 250),
+                                Param("do_train", True),
+                                
+                                Param("algo.params.optim.args.lr", 1),
+                                Param("algo.params.optim.args.weight_decay", 0.0001),
+
+                                Param("algo.params.common.K", 100),
+                                Param("algo.params.common.B", 100),
+                                Param("algo.params.common.C", 0.2),
+
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.evaluator.task2vec.method", "montecarlo"),
+                                Param("algo.params.evaluator.task2vec.probe_network", "charGPT"),
+                                MultiParam.key("algo.params.clustering.classname", ["ICGClusterMaker", "RandomClusterMaker"]),
+                                Param("algo.params.clustering.measure", "normalized_cosine"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                    
+                                Param("algo.params.growth_func", "linear"),
+                                MultiParam.key("algo.params.alpha_growth", [0.005, 0.01, 0.02]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 25]),
+                                runner_options={"--time": "12:00:00"}
+                                ),
+         FedExperiment.from_params("Shakespeare - exp",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("dataset", "shakespeare_niid"),
+                                Param("model", "shakespeare"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 250),
+                                Param("do_train", True),
+                                
+                                Param("algo.params.optim.args.lr", 1),
+                                Param("algo.params.optim.args.weight_decay", 0.0001),
+
+                                Param("algo.params.common.K", 100),
+                                Param("algo.params.common.B", 100),
+                                Param("algo.params.common.C", 0.2),
+
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.evaluator.task2vec.method", "montecarlo"),
+                                Param("algo.params.evaluator.task2vec.probe_network", "charGPT"),
+                                MultiParam.key("algo.params.clustering.classname", ["ICGClusterMaker", "RandomClusterMaker"]),
+                                Param("algo.params.clustering.measure", "normalized_cosine"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                    
+                                Param("algo.params.growth_func", "exp"),
+                                MultiParam.key("algo.params.alpha_growth", [0.006, 0.012, 0.018]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 25]),
+                                runner_options={"--time": "12:00:00"}
+                                ),
+        
+        
+    
+    
+    
+    
+    
+    
+    
+    ]
+    """
+    experiments = [
+        #THESE ARE THE ACTUAL EXPERIMENTS FOR FEMNIST FOR FEDSEQPARALLEL!!!
+        FedExperiment.from_params("FEMNIST - log",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("dataset", "emnist_niid"),
+                                Param("model", "emnist"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("do_train", True),
+                                
+                                Param("algo.params.optim.args.lr", 0.01),
+                                Param("algo.params.optim.args.weight_decay", 0),
+
+                                Param("algo.params.common.K", 3500),
+                                Param("algo.params.common.B", 20),
+                                Param("algo.params.common.C", 0.2),
+
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.evaluator.task2vec.method", "montecarlo"),
+                                Param("algo.params.evaluator.task2vec.probe_network", "resnet18"),
+                                Param("algo.params.clustering.classname", "ICGClusterMaker"),
+                                Param("algo.params.clustering.measure", "normalized_cosine"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                    
+                                Param("algo.params.growth_func", "log"),
+                                MultiParam.key("algo.params.alpha_growth", [10, 15, 20]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 25]),
+                                runner_options={"--time": "30:00:00"}
+                                ),
+         FedExperiment.from_params("FEMNIST - linear",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("dataset", "emnist_niid"),
+                                Param("model", "emnist"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("do_train", True),
+                                
+                                Param("algo.params.optim.args.lr", 0.01),
+                                Param("algo.params.optim.args.weight_decay", 0),
+
+                                Param("algo.params.common.K", 3500),
+                                Param("algo.params.common.B", 20),
+                                Param("algo.params.common.C", 0.2),
+
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.evaluator.task2vec.method", "montecarlo"),
+                                Param("algo.params.evaluator.task2vec.probe_network", "resnet18"),
+                                Param("algo.params.clustering.classname", "ICGClusterMaker"),
+                                Param("algo.params.clustering.measure", "normalized_cosine"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                    
+                                Param("algo.params.growth_func", "linear"),
+                                MultiParam.key("algo.params.alpha_growth", [0.1, 0.15, 0.2]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 25]),
+                                runner_options={"--time": "30:00:00"}
+                                ),
+         FedExperiment.from_params("FEMNIST - exp",
+                                  "",
+                                Param("algo", "fedseq_parallel"),
+                                Param("dataset", "emnist_niid"),
+                                Param("model", "emnist"),
+                                Param("device", "cuda:0"),
+                                Param("n_round", 1500),
+                                Param("do_train", True),
+                                
+                                Param("algo.params.optim.args.lr", 0.01),
+                                Param("algo.params.optim.args.weight_decay", 0),
+
+                                Param("algo.params.common.K", 3500),
+                                Param("algo.params.common.B", 20),
+                                Param("algo.params.common.C", 0.2),
+
+                                Param("algo.params.evaluator.extract", "task2vec"),
+                                Param("algo.params.evaluator.task2vec.method", "montecarlo"),
+                                Param("algo.params.evaluator.task2vec.probe_network", "resnet18"),
+                                Param("algo.params.clustering.classname", "ICGClusterMaker"),
+                                Param("algo.params.clustering.measure", "normalized_cosine"),
+                                Param("algo.params.clustering.collect_time_statistics", True),
+                                    
+                                Param("algo.params.growth_func", "exp"),
+                                MultiParam.key("algo.params.alpha_growth", [0.002, 0.003, 0.004]),
+                                MultiParam.key("algo.params.beta_growth", [5, 10, 20, 25]),
+                                runner_options={"--time": "30:00:00"}
+                                ),
+    ]
+    
+    r = SlurmRunner(experiment_config.get("seed"), 0.11, train_time_overshoot=0.04,
                             default_params=train_defaults)
     for e in experiments:
         print(e)
