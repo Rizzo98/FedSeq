@@ -43,32 +43,6 @@ class FedSeqToParallel(FedSeq):
             self.superclients = self.clustering_method.make_superclients(self.clients, self.representers, sub_path=self.evaluator.extract, **self.training,
                                         optimizer_class=self.optimizer, optimizer_args=self.optimizer_args, one_time_clustering = (not self.keep_representers))
             self.num_superclients = len(self.superclients)
-        '''
-        else:
-            if self._round > 0:
-                self._shuffle_current_superclients()
-        '''    
-    def _shuffle_current_superclients(self): #deprecated
-        if self.clustering.classname != 'RandomClusterMaker':
-            self._redistribute_clients_based_on_clusters()
-        else:
-            self.superclients = self.clustering_method.make_superclients(self.clients, self.representers, sub_path=self.evaluator.extract, **self.training,
-                                        optimizer_class=self.optimizer, optimizer_args=self.optimizer_args)
-            
-    
-    def _redistribute_clients_based_on_clusters(self): #deprecated
-        client_clusters_distribution = {i: [] for i in range(self.clustering_method._n_clusters)}
-        client_superclients_distribution = {i: [] for i in range(len(self.superclients))}
-        for n_superclient, superclient in enumerate(self.superclients):
-            for index_client, c in enumerate(superclient.clients):
-                client_clusters_distribution[c.cluster_id].append((n_superclient, index_client))
-                client_superclients_distribution[n_superclient].append(c.cluster_id)
-        for n_superclient, cluster_labels in client_superclients_distribution.items():
-            for i, c_label in enumerate(cluster_labels):
-                rand_index = np.random.choice(range(len(client_clusters_distribution[c_label])))
-                (wanted_sc, wanted_c) = client_clusters_distribution[c_label].pop(rand_index)
-                self.superclients[n_superclient].clients[i] = self.superclients[wanted_sc].clients[wanted_c]
-            random.shuffle(self.superclients[n_superclient].clients)
     
     def _check_validity(self, n_superclients):
         if n_superclients <= self.num_clients:

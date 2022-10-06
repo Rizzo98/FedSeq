@@ -26,30 +26,33 @@ class ICGClusterMaker(InformedClusterMaker):
         client_representers = list(zip(clients, representers))
         random.shuffle(client_representers)
         client_representers = list(zip(*client_representers))
-        self.sampled_clients = list(client_representers[0])[:self.n_sampled_clients]
-        self.sampled_representers = np.array(list(client_representers[1])[:self.n_sampled_clients])
-        remaining_clients = list(client_representers[0])[self.n_sampled_clients:]
+        clients = list(client_representers[0])
+        sampled_clients = clients[:self.n_sampled_clients]
+        remaining_clients = clients[self.n_sampled_clients:]
+        sampled_representers = np.array(list(client_representers[1])[:self.n_sampled_clients])
+        
         self._populate_assignment_matrix()
         iteration = 0
         while iteration == 0 or (iteration < self.n_max_iterations and self._obtainedDifferentAssignment()):
-            centroids = self._fix_centroids()
-            costs = self._calculate_costs(centroids)
+            centroids = self._fix_centroids(sampled_representers)
+            costs = self._calculate_costs(centroids, sampled_representers)
             self._solve_assignment_problem(costs)
             iteration += 1
         clusters = self._obtain_clusters()
-        groups = self._sample_from_clusters(clusters, remaining_clients)
+        
+        groups = self._sample_from_clusters(clusters, remaining_clients, sampled_clients)
         return groups
 
-    def _fix_centroids(self):
+    def _fix_centroids(self, sampled_representers):
         centroids : List[np.ndarray] = []
         for cluster in range(self._n_clusters):
-            centroids.append((np.sum(self.sampled_representers[(self.assigned_clients[cluster,:] == 1), :], axis=0) / self.n_clients_x_cluster)[np.newaxis, :])
+            centroids.append((np.sum(sampled_representers[(self.assigned_clients[cluster,:] == 1), :], axis=0) / self.n_clients_x_cluster)[np.newaxis, :])
         return centroids
 
-    def _calculate_costs(self, centroids):
+    def _calculate_costs(self, centroids, sampled_representers):
         costs = np.zeros((self._n_clusters, self.n_sampled_clients))
         for i, centroid in enumerate(centroids):
-            costs[i] = cdist(centroid, self.sampled_representers, metric='sqeuclidean')
+            costs[i] = cdist(centroid, sampled_representers, metric='sqeuclidean')
         exponent = math.floor(math.log10(np.min(costs)))
         costs = 10**(-exponent)*costs
         return costs
@@ -72,9 +75,9 @@ class ICGClusterMaker(InformedClusterMaker):
         self._populate_assignment_matrix(solver_results=min_cost_flow)
         
     def _populate_assignment_matrix(self, solver_results=None):
-        self.previous_assigned_clients = np.zeros((self._n_clusters, self.n_sampled_clients))
+        self.previous_assigned_clients = np.zeros((self._n_clusters, self.n_sampled_clients), dtype=np.int8)
         if solver_results is None:
-            self.assigned_clients = np.zeros((self._n_clusters, self.n_sampled_clients))
+            self.assigned_clients = np.zeros((self._n_clusters, self.n_sampled_clients), dtype=np.int8)
             available_clients = set(range(self.n_sampled_clients))        
             for cluster in range(self._n_clusters):
                 selected_clients = np.random.choice(list(available_clients), self.n_clients_x_cluster, replace=False)
@@ -82,8 +85,8 @@ class ICGClusterMaker(InformedClusterMaker):
                     available_clients.remove(selected_client)
                     self.assigned_clients[cluster, selected_client] = 1
         else:
-            self.previous_assigned_clients = self.assigned_clients
-            self.assigned_clients = np.zeros((self._n_clusters, self.n_sampled_clients))
+            self.previous_assigned_clients = np.copy(self.assigned_clients)
+            self.assigned_clients = np.zeros((self._n_clusters, self.n_sampled_clients), dtype=np.int8)
             for i in range(solver_results.NumArcs()):
                 if solver_results.Flow(i) > 0:
                     self.assigned_clients[solver_results.Head(i) - self.n_sampled_clients, solver_results.Tail(i)] = 1
@@ -94,15 +97,14 @@ class ICGClusterMaker(InformedClusterMaker):
             clusters[i] = list(np.where(self.assigned_clients[i,:] == 1)[0])
         return clusters
     
-    def _sample_from_clusters(self, clusters, remaining_clients):
+    def _sample_from_clusters(self, clusters, remaining_clients, sampled_clients):
         groups : List[ClientCluster] = []
         for g in range(self.n_clients_x_cluster):
             group = ClientCluster(g, logger=log)
             for cluster in range(self._n_clusters):
                 idx = int(np.random.choice(range(len(clusters[cluster])), 1))
                 client = clusters[cluster].pop(idx)
-                self.sampled_clients[client].cluster_id = cluster
-                group.add_client(self.sampled_clients[client])
+                group.add_client(sampled_clients[client])
             groups.append(group)
         n_groups = len(groups)
         for i in range(len(remaining_clients)):
