@@ -68,10 +68,6 @@ class ICGClusterMaker(InformedClusterMaker):
         for cluster in clusters:
             min_cost_flow.SetNodeSupply(cluster, -self.n_clients_x_cluster)
         status = min_cost_flow.Solve()
-        if status != min_cost_flow.OPTIMAL:
-            print('There was an issue with the min cost flow input.')
-            print(f'Status: {status}')
-            exit(1)
         self._populate_assignment_matrix(solver_results=min_cost_flow)
         
     def _populate_assignment_matrix(self, solver_results=None):

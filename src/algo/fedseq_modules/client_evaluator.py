@@ -11,6 +11,7 @@ from tqdm import tqdm
 import src.utils.aws_cv_task2vec.models as models
 import src.utils.aws_cv_task2vec.task2vec as t2v
 from src.utils.data import dataset_from_dataloader
+from sklearn.preprocessing import StandardScaler
 
 log = logging.getLogger(__name__)
 
@@ -100,9 +101,11 @@ class ClientEvaluator:
                 return np.concatenate(fc_layers)
 
     def __reduce_representers(self, representers: List[np.ndarray], to_extract: str):
-        if self.variance_explained > 0 and to_extract != "confidence" and to_extract != "task2vec" and to_extract != "classDistribution":
+        if self.variance_explained > 0 and ((to_extract != "confidence" and to_extract != "task2vec" and to_extract != "classDistribution") or self.task2vec_pn == 'minGPT'):
             n_components_before = len(representers[0])
             if len(representers)*n_components_before<5_000*1_000_000:
+                scaler = StandardScaler()
+                representers = scaler.fit_transform(representers)
                 reducer = PCA(n_components=self.variance_explained, svd_solver='full')
                 new_representers = reducer.fit_transform(representers)
                 log.info(

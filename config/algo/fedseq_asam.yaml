@@ -1,0 +1,22 @@
+# @package _global_
+defaults:
+  - fedseq
+
+algo:
+  type: fedseq_asam
+  params:
+    eta: 0.2
+    rho: 0.1
+    lr2: 0.0004 #gamma2 a γ2 = 10−4
+    c: 20 #The cycle length c is tested in {5, 10, 20} and set to 10 for Cifar10 and 20 for Cifar100.
+    center_server:
+      classname: ASAMCenterServer
+      args:
+        num_clients: ${algo.params.common.K}
+        c: ${algo.params.c}
+        tot_epochs : ${n_round}
+    client:
+      classname: ASAMClient
+      args:
+        eta: ${algo.params.eta}
+        rho: ${algo.params.rho}
