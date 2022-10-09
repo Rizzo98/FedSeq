@@ -17,7 +17,7 @@ class FedSWACenterServer(FedAvgCenterServer):
         self.swa_model = None
 
     def aggregation(self, clients: List[Client], aggregation_weights: List[float], round:int):
-        super().aggregation(self, clients, aggregation_weights, round)
+        super().aggregation(clients, aggregation_weights, round)
         if round > self.swa_start and (round - self.swa_start) % self.c == 0:
             alpha = (1.0 / (self.swa_n + 1))
             for param1, param2 in zip(self.swa_model.parameters(), self.model.parameters()):

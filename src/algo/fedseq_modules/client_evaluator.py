@@ -101,7 +101,7 @@ class ClientEvaluator:
                 return np.concatenate(fc_layers)
 
     def __reduce_representers(self, representers: List[np.ndarray], to_extract: str):
-        if self.variance_explained > 0 and ((to_extract != "confidence" and to_extract != "task2vec" and to_extract != "classDistribution") or self.task2vec_pn == 'minGPT'):
+        if self.variance_explained > 0 and ((to_extract != "confidence" and to_extract != "task2vec" and to_extract != "classDistribution") or (to_extract == "task2vec" and self.task2vec_pn == 'minGPT')):
             n_components_before = len(representers[0])
             if len(representers)*n_components_before<5_000*1_000_000:
                 scaler = StandardScaler()

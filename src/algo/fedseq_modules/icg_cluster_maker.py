@@ -53,7 +53,8 @@ class ICGClusterMaker(InformedClusterMaker):
         costs = np.zeros((self._n_clusters, self.n_sampled_clients))
         for i, centroid in enumerate(centroids):
             costs[i] = cdist(centroid, sampled_representers, metric='sqeuclidean')
-        exponent = math.floor(math.log10(np.min(costs)))
+        min_cost = np.min(costs)
+        exponent = math.floor(math.log10(min_cost)) if min_cost > 0 else 0 
         costs = 10**(-exponent)*costs
         return costs
 

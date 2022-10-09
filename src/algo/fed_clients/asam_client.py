@@ -17,7 +17,6 @@ class ASAMClient(Client):
     def client_update(self, optimizer, optimizer_args, local_epoch, loss_fn):
         self.model.to(self.device)
         loss_fn.to(self.device)
-        ####forse va qua il lr però condizionato dal n.round
         optimizer = optimizer(self.model.parameters(), **optimizer_args)
         for _ in range(local_epoch):
             self.model.train()

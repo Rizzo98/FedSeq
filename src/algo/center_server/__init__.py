@@ -5,3 +5,4 @@ from .scaffold_center_server import SCAFFOLDCenterServer
 from .feddyn_center_server import FedDynCenterServer
 from .model_alignment_center_server import ModelAlignmentCenterServer
 from .loss_weight_center_server import LossWeightCenterServer
+from .fedswa_center_server import FedSWACenterServer
