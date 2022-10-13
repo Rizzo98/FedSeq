@@ -14,3 +14,4 @@ from src.algo.fedseq_scaffold import FedSeqSCAFFOLD
 from src.algo.fedseq_loss_tracking import FedSeqLossTracking
 from src.algo.fedseq_parallel import FedSeqToParallel
 from src.algo.asam import ASAM
+from src.algo.fedseq_asam import FedSeqASAM

@@ -13,7 +13,7 @@ class FedSWACenterServer(FedAvgCenterServer):
         self.num_clients = num_clients
         self.c = c
         self.swa_start = 0.75 * tot_epochs
-        self.swa_n = 0 #non chiaro
+        self.swa_n = 0 
         self.swa_model = None
 
     def aggregation(self, clients: List[Client], aggregation_weights: List[float], round:int):
@@ -23,6 +23,7 @@ class FedSWACenterServer(FedAvgCenterServer):
             for param1, param2 in zip(self.swa_model.parameters(), self.model.parameters()):
                 param1.data *= (1.0 - alpha)
                 param1.data += param2.data * alpha
+            self.swa_n += 1
 
     def validation(self, loss_fn) -> Tuple[float, MeasureMeter]:
         model = self.model if self.swa_model is None else self.swa_model
