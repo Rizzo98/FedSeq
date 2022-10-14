@@ -9,10 +9,11 @@ algo:
     rho: 0.1
     lr2: 0.0004 #gamma2 a γ2 = 10−4
     c: 20 #The cycle length c is tested in {5, 10, 20} and set to 10 for Cifar10 and 20 for Cifar100.
+    swa_start: 0.75
     center_server:
       classname: ASAMCenterServer
       args:
-        num_clients: ${algo.params.common.K}
+        swa_start: ${algo.params.swa_start}
         c: ${algo.params.c}
         tot_epochs : ${n_round}
     client:

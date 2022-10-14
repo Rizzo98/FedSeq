@@ -8,11 +8,10 @@ from src.utils import MeasureMeter
 from src.datasets import StackoverflowLocalDataset
 
 class FedSWACenterServer(FedAvgCenterServer):
-    def __init__(self, model, dataloader, device, num_clients, c, tot_epochs):
+    def __init__(self, model, dataloader, device, swa_start, c, tot_epochs):
         super().__init__(model, dataloader, device)
-        self.num_clients = num_clients
         self.c = c
-        self.swa_start = 0.75 * tot_epochs
+        self.swa_start = swa_start * tot_epochs
         self.swa_n = 0 
         self.swa_model = None
 
