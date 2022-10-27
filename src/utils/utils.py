@@ -142,9 +142,9 @@ class WanDBSummaryWriter:
                 elif config.algo.type=='fedseq_parallel':
                     func = f'func:{config.algo.params.growth_func}(a={config.algo.params.alpha_growth},b={config.algo.params.beta_growth})'
                     run_name+=f'_{func}'
-                elif config.algo.type=='asam' or config.algo.type=='fedseq_asam':
-                    params = f'(rho:{config.algo.params.rho}_eta:{config.algo.params.eta}_lr2:{config.algo.params.lr2})'
-                    run_name+=f'_{params}'
+            if config.algo.type=='asam' or config.algo.type=='fedseq_asam':
+                params = f'(rho:{config.algo.params.rho}_eta:{config.algo.params.eta}_lr2:{config.algo.params.lr2})'
+                run_name+=f'_{params}'
         if config.device=='cpu':
             project_name = 'test-project'
         if config.wandb.run_suffix is not None:
