@@ -158,8 +158,8 @@ class FedSeq(FedBase):
         method = clustering_methods[self.clustering.classname]
         method.save_statistic = self.clustering.save_statistics
         method.measure = method.requires_clients_evaluation() and self.clustering.measure or None
-        if self.keep_representers:
-            self.clustering_method = method
+        #if self.keep_representers:
+        #    self.clustering_method = method
         log.info(f"Clustering with {self.clustering.classname} using {method.measure} for training")
         return method.make_superclients(self.clients, representers, sub_path=extracted, **self.training,
                                         optimizer_class=self.optimizer, optimizer_args=self.optimizer_args, one_time_clustering = (not self.keep_representers))
