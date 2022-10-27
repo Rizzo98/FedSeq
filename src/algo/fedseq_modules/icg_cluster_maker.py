@@ -30,7 +30,6 @@ class ICGClusterMaker(InformedClusterMaker):
         sampled_clients = clients[:self.n_sampled_clients]
         remaining_clients = clients[self.n_sampled_clients:]
         sampled_representers = np.array(list(client_representers[1])[:self.n_sampled_clients])
-        
         self._populate_assignment_matrix()
         iteration = 0
         while iteration == 0 or (iteration < self.n_max_iterations and self._obtainedDifferentAssignment()):
@@ -39,8 +38,8 @@ class ICGClusterMaker(InformedClusterMaker):
             self._solve_assignment_problem(costs)
             iteration += 1
         clusters = self._obtain_clusters()
-        
         groups = self._sample_from_clusters(clusters, remaining_clients, sampled_clients)
+        self._delete_variables()
         return groups
 
     def _fix_centroids(self, sampled_representers):
@@ -111,6 +110,9 @@ class ICGClusterMaker(InformedClusterMaker):
     def _obtainedDifferentAssignment(self):
         return not np.array_equal(self.assigned_clients, self.previous_assigned_clients)
 
+    def _delete_variables(self):
+        del self.previous_assigned_clients
+        del self.assigned_clients
     
     def requires_incompatibility_check(self) -> bool:
         return False

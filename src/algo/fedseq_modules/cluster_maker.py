@@ -113,8 +113,10 @@ class ClusterMaker(ABC):
             self._collect_clustering_statistics(clients, ("superclients", {i: s.num_ex_per_class()
                                                                        for i, s in enumerate(sp)}))
         self._save_tsne(clients, representers, sp)
+        """
         savepickle(self._statistics,
                    os.path.join(self._savedir, sub_path, f"{self.__class__.__name__}_{self._measure}_stats.pkl"))
+        """
         return sp
 
     @abstractmethod

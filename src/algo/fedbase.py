@@ -141,7 +141,7 @@ class FedBase(Algo):
                 self.writer.add_summary_value(f'Average_accuracy_{self.dataset.average_accuracy_rounds}_rounds',\
                     self.writer.local_store['Avg_acc']/self.dataset.average_accuracy_rounds)
                 if hasattr(self, 'avg_n_superclients'):
-                    self.writer.add_summary_value('avg_n_superclients', self.avg_n_superclients/self.num_round)
+                    self.writer.add_summary_value('avg_n_superclients', self.avg_n_superclients)
                 if hasattr(self, 'clustering_method') and self.clustering.collect_time_statistics:
                     self.writer.add_summary_value('total_cluster_time', str(datetime.timedelta(seconds=(self.clustering_method._writer.local_store['cluster_time']))))
                     self.writer.add_summary_value('avg_cluster_time', str(datetime.timedelta(seconds=(self.clustering_method._writer.local_store['cluster_time']/self.clustering_method._writer.local_store['n_clustering']))))
