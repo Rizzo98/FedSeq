@@ -13,7 +13,7 @@ algo:
     c: 20 #The cycle length c is tested in {5, 10, 20} and set to 10 for Cifar10 and 20 for Cifar100.
     swa_start: 0.75
     center_server:
-      classname: ASAMCenterServer
+      classname: FedSWACenterServer
       args:
         swa_start: ${algo.params.swa_start}
         c: ${algo.params.c}
