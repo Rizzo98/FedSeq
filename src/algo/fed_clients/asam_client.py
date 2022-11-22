@@ -30,9 +30,9 @@ class ASAMClient(Client):
                 loss = loss_fn(logits, target)
                 loss.backward()
                 minimizer.ascent_step()
-                
                 #Descent step
                 loss_fn(self.model(img), target).backward()
                 minimizer.descent_step()
+        self.model.to('cpu')
 
                 
