@@ -47,35 +47,6 @@ class ASAM:
         self.optimizer.step()
         self.optimizer.zero_grad()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class SAM(ASAM):
     @torch.no_grad()
     def ascent_step(self):
@@ -88,10 +59,10 @@ class SAM(ASAM):
         for n, p in self.model.named_parameters():
             if p.grad is None:
                 continue
-            eps = self.state[p].get("eps")
+            eps = self.state[n].get("eps")
             if eps is None:
                 eps = torch.clone(p).detach()
-                self.state[p]["eps"] = eps
+                self.state[n]["eps"] = eps
             eps[...] = p.grad[...]
             eps.mul_(self.rho / grad_norm)
             p.add_(eps)

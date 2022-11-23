@@ -15,6 +15,7 @@ class ASAM(FedAvg):
         self.swa_start_frac = params.swa_start
         self.c = params.c
         self.lr2 = params.lr2
+        self.adaptive = params.adaptive
 
     def train_step(self):
         if self.swa_start == None:
