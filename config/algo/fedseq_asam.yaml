@@ -6,11 +6,12 @@ algo:
   type: fedseq_asam
   classname: FedSeqASAM
   params:
-    eta: 0.2
-    rho: 0.1
-    lr2: 0.0004 #gamma2 a γ2 = 10−4
-    c: 20 #The cycle length c is tested in {5, 10, 20} and set to 10 for Cifar10 and 20 for Cifar100.
-    swa_start: 0.75
+    eta: 0
+    rho: 0.01
+    lr2: 0.0001 #gamma2 a γ2 = 10−4
+    c: 10 #The cycle length c is tested in {5, 10, 20} and set to 10 for Cifar10 and 20 for Cifar100.
+    swa_start: 0.9
+    adaptive: False
     center_server:
       classname: FedSWACenterServer
       args:
@@ -22,3 +23,4 @@ algo:
       args:
         eta: ${algo.params.eta}
         rho: ${algo.params.rho}
+        adaptive: ${algo.params.adaptive}
