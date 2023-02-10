@@ -19,6 +19,9 @@ import numpy as np
 import copy
 import pickle
 from scipy.special import rel_entr
+from sklearn.manifold import MDS
+import matplotlib.colors as cl
+import matplotlib.cm as cm
 _DISTANCES = {}
 
 
@@ -227,7 +230,7 @@ def cdist(from_embeddings, to_embeddings, distance='cosine'):
     return distance_matrix
 
 
-def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
+def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine', options=(True,False), dataset=None, requirements=('', '')):
     import seaborn as sns
     from scipy.cluster.hierarchy import linkage
     from scipy.spatial.distance import squareform
@@ -235,10 +238,12 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
     import matplotlib.pyplot as plt
     from matplotlib import rcParams
     rcParams['figure.figsize'] = 19,19
+    save_plot, save_MDS = options
+    dataset, alpha = requirements
     distance_matrix = pdist(embeddings, distance=distance)
+    ''' #not interested
     if labels is not None:
         distance_matrix = pd.DataFrame(distance_matrix, index=labels, columns=labels)
-    '''
     if distance == 'cosine' or distance == 'normalized_cosine':
         cond_distance_matrix = squareform(distance_matrix, checks=False)
         linkage_matrix = linkage(cond_distance_matrix, method='complete', optimal_ordering=True)
@@ -247,9 +252,38 @@ def plot_distance_matrix(embeddings, savedir, labels=None, distance='cosine'):
         plt.clf()
     '''
     plt.gcf().subplots_adjust(left=0.05)
-    sns.heatmap(distance_matrix, cmap='viridis_r', cbar=False, annot=False)
-    plt.savefig(f'{savedir}/{distance}_heatmap.png')
-    plt.clf()
+    if save_plot:
+        sns.heatmap(distance_matrix, cmap='viridis_r', cbar=True, annot=False)
+        plt.savefig(f'{savedir}/{distance}_heatmap.png')
+        plt.clf()
+    if save_MDS: #we just use it for cifar100 only, can easily be adapted
+        plt.figure()
+        embedding = MDS(n_components=2, dissimilarity='precomputed')
+        transformed_points = embedding.fit_transform(distance_matrix)
+        assert dataset == 'cifar100' and alpha==0, "Currently implemented only for CIFAR100, alpha 0"
+        coarse_labels = [4, 1, 14, 8, 0, 6, 7, 7, 18, 3, 3, 14, 9, 18, 7, 11, 3, 9, 7, 11, 6, 11, 5, 10, 7, 6, 13, 15, 3, 15, 0, 11, 1, 10, 12, 14, 16, 9, 11, 5, 5, 19, 8, 8, 15, 13, 14, 17, 18, 10, 16, 4, 17, 4, 2, 0, 17, 4, 18, 17, 10, 3, 2, 12, 12, 16, 12, 1, 9, 19, 2, 10, 0, 1, 16, 12, 9, 13, 15, 13, 16, 19, 2, 4, 6, 19, 5, 5, 8, 19, 18, 1, 2, 15, 6, 0, 17, 8, 14, 13]
+        current_labels = {coarse_labels[q] for q in {l for l in labels}}
+        assert len(current_labels) <= 6, 'only doable with max 6 different coarse classes'
+        colors = [cm.Blues, cm.Greens, cm.Oranges, cm.Purples, cm.Reds, cm.Greys] 
+        shapes = ['o', '^', 'X', 's', 'p', '*']
+        colors, shapes = colors[:len(current_labels)], shapes[:len(current_labels)]
+        coarse_dict = {label:[] for label in current_labels}
+        for l in labels:
+            if l not in coarse_dict[coarse_labels[l]]:
+                coarse_dict[coarse_labels[l]].append(l) 
+        
+        for c_num, (color, coarse_label) in enumerate(zip(colors, current_labels)):
+            norm = cl.Normalize(vmin=1, vmax=len(coarse_dict[coarse_label]))
+            cmap = cm.ScalarMappable(norm=norm, cmap=color)
+            cmap.set_array([])
+            for i, label in enumerate(coarse_dict[coarse_label]):
+                ids = np.array([True if label == l else False for l in labels])
+                plt.scatter(transformed_points[ids, 0], transformed_points[ids, 1], color=cmap.to_rgba(i + 2), s=500, marker=shapes[c_num])
+        plt.savefig(f'{savedir}/cifar100_MDS.png')
+        plt.clf()
+         
+
+            
 
 
 

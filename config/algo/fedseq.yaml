@@ -13,11 +13,11 @@ algo:
       classnames_eval: [] # for these save_statistics is True
       measures_eval: []
       disomogeneity_measures: ["gini", "kullback", "scipy_kullback"] #measures that apply only to probability distributions
-      classname: GreedyClusterMaker
-      max_clients: 25
-      min_examples: 8500
+      classname: ICGClusterMaker
+      max_clients: 11
+      min_examples: 1000
       measure: normalized_cosine
-      ICG_n_superclients: 29
+      ICG_n_superclients: 175
       save_statistics: False
       verbose: False
       save_visualization: False
@@ -31,7 +31,7 @@ algo:
       variance_explained: 0.9 #percentage of variance explained
       task2vec:
         method: 'montecarlo' #either variational or montecarlo method
-        probe_network: 'charGPT' #either resnet18 or resnet34 for now
+        probe_network: 'resnet18' #either resnet18 or resnet34 for now
     training:
       average_model: False
       sequential_rounds: 1 #number of sequential iterations through superclients' clients
@@ -43,6 +43,7 @@ algo:
     save_representers: False
     save_superclients: False
     save_plot_dist_matrix: False
+    save_MDS_dist_matrix: False
     keep_representers: False
     common:
       dp: #differential privacy

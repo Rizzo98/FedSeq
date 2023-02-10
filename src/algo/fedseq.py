@@ -55,8 +55,10 @@ class FedSeq(FedBase):
             if self.evaluator.extract in evaluations:
                 clients_representer = evaluations[self.evaluator.extract].representers
 
-            if params.save_plot_dist_matrix:
-                similarity.plot_distance_matrix(clients_representer, savedir, distance=self.clustering.measure)
+            if params.save_plot_dist_matrix or params.save_MDS_dist_matrix:
+                similarity.plot_distance_matrix(clients_representer, savedir,
+                        labels = np.array([c.dataloader.dataset.labels[0] for c in self.clients]), distance=self.clustering.measure,
+                        options=(params.save_plot_dist_matrix, params.save_MDS_dist_matrix), requirements=(self.dataset.name, self.alpha))
 
             if self.keep_representers:
                 self.assign_representers(clients_representer)

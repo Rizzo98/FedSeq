@@ -1,12 +1,11 @@
 defaults:
-  - model: soverflow
-  - algo: fedseq
-  - dataset: soverflow_niid
+  - model: lenet
+  - algo: fedseq_dyn_gsp
+  - dataset: cifar100
   - _self_
 
-n_round: 1500
-device: 'cuda:0'
-
+n_round: 20000
+device: 'cuda:3'
 seed: 2021
 output_suffix: ""
 do_train: True
@@ -22,12 +21,12 @@ wandb:
   restart_from_run: null #run_id/null
   run_suffix: null #null/n.times this run is being repeated
   entity: "fedseq-thesis"
-  tags: ["fakeruns"]
+  tags: ["run_aggiuntive"]
   server_model:
     save_every_n_rounds: False
-    tot_round: 2
+    tot_round: 3
   client_datasets: false # true/false
-  superclient_datasets: false #true/false
+  superclient_datasets: False #true/false
 
 
 
