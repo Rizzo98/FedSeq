@@ -5,11 +5,13 @@ from src.algo.fed_clients import Client
 
 
 class FedDynCenterServer(FedAvgCenterServer):
-    def __init__(self, model, dataloader, device, alpha, num_clients):
+    def __init__(self, model, dataloader, device, alpha, num_clients, compute_on_cpu):
         super().__init__(model, dataloader, device)
-        self.h = [torch.zeros_like(p.data, device=device) for p in self.model.parameters()]
+        self.loc_aggr = 'cpu' if compute_on_cpu else device
+        self.h = [torch.zeros_like(p.data, device=self.loc_aggr) for p in self.model.parameters()]
         self.alpha = alpha
         self.num_clients = num_clients
+        
 
     @staticmethod
     def from_center_server(server: CenterServer, alpha, num_clients):
@@ -17,6 +19,7 @@ class FedDynCenterServer(FedAvgCenterServer):
 
     def aggregation(self, clients: List[Client], aggregation_weights: List[float], round:int):
         # compute the sum of all the model parameters of the clients involved in training
+        self.model.to(self.loc_aggr)
         sum_theta = [torch.zeros_like(p.data) for p in self.model.parameters()]
         for c in clients:
             for s, c_theta in zip(sum_theta, c.model.parameters()):

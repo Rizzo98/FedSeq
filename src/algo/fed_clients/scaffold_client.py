@@ -7,8 +7,8 @@ from src.algo.fed_clients.base_client import Client
 
 class SCAFFOLDClient(Client):
 
-    def __init__(self, client_id: int, dataloader: Optional[DataLoader], num_classes=None, device="cpu", dp=None):
-        super().__init__(client_id, dataloader, num_classes, device, dp)
+    def __init__(self, client_id: int, dataloader: Optional[DataLoader], savedir: str, num_classes=None, device="cpu", dp=None):
+        super().__init__(client_id, dataloader, savedir, num_classes, device, dp)
         self.old_controls = None
         self.controls = None
         self.server_controls = None
@@ -63,6 +63,7 @@ class SCAFFOLDClient(Client):
                 loss.backward()
                 batches += 1
         server_model.to("cpu")
+        self.model.to("cpu")
         for cc, p in zip(self.controls, server_model.parameters()):
             cc.data = p.grad.data/batches
 

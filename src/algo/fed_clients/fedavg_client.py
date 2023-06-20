@@ -10,8 +10,8 @@ from src.algo.fed_clients.base_client import Client
 
 class FedAvgClient(Client):
 
-    def __init__(self, client_id: int, dataloader: Optional[DataLoader], num_classes=None, device="cpu", dp=None):
-        super().__init__(client_id, dataloader, num_classes, device, dp)
+    def __init__(self, client_id: int, dataloader: Optional[DataLoader], savedir: str, num_classes=None, device="cpu", dp=None):
+        super().__init__(client_id, dataloader, savedir, num_classes, device, dp)
 
     def client_update(self, optimizer, optimizer_args, local_epoch, loss_fn):
         if type(loss_fn) != CrossEntropyLoss:

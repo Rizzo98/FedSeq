@@ -9,9 +9,10 @@ from src.utils import MeasureMeter, generate_sigma_noise
 
 
 class Client(ABC):
-    def __init__(self, client_id: int, dataloader: Optional[DataLoader], num_classes=None, device="cpu", dp=None):
+    def __init__(self, client_id: int, dataloader: Optional[DataLoader], savedir: str, num_classes=None, device="cpu", dp=None):
         self.client_id = client_id
         self.__dataloader = dataloader
+        self.savedir =savedir
         self.device = device
         self.__model = None
         self.__num_classes = num_classes

@@ -46,9 +46,10 @@ class FedBase(Algo):
             for dataset in self.local_datasets]
 
         self.clients = [
-            eval(params.client.classname)(k, local_dataloaders[k], self.dataset_num_classes, self.device,
+            eval(params.client.classname)(k, local_dataloaders[k], self.savedir, self.dataset_num_classes, self.device,
                                           self.dp, **params.client.args) for k in range(self.num_clients)
         ]
+        #self.clients = self.clients[:75]
         self.selected_clients = []
 
         # take out examplars from test_dataset, will be used in FedSeq

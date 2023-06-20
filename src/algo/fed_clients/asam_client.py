@@ -8,9 +8,9 @@ from src.optim.asam_opt import ASAM, SAM
 
 class ASAMClient(Client):
 
-    def __init__(self, client_id: int, dataloader: Optional[DataLoader], num_classes=None, device="cpu", dp=None,
+    def __init__(self, client_id: int, dataloader: Optional[DataLoader], savedir: str, num_classes=None, device="cpu", dp=None,
                  rho=0.1, eta=0.2, adaptive=True):
-        super().__init__(client_id, dataloader, num_classes, device, dp)
+        super().__init__(client_id, dataloader, savedir, num_classes, device, dp)
         self.rho = rho
         self.eta = eta
         self.adaptive = adaptive

@@ -7,13 +7,16 @@ algo:
   type: feddyn
   classname: FedAvg
   params:
-    alpha: 0.01
+    alpha: 0.001
     center_server:
       classname: FedDynCenterServer
       args:
         num_clients: ${algo.params.common.K}
         alpha: ${algo.params.alpha}
+        compute_on_cpu: False
     client:
       classname: FedDynClient
       args:
         alpha: ${algo.params.alpha}
+        compute_on_cpu: ${algo.params.center_server.args.compute_on_cpu}
+    
