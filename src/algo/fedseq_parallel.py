@@ -48,6 +48,7 @@ class FedSeqToParallel(FedSeq):
             self.superclients = method.make_superclients(self.clients, self.representers, sub_path=self.evaluator.extract, **self.training,
                                         optimizer_class=self.optimizer, optimizer_args=self.optimizer_args, one_time_clustering = (not self.keep_representers))
             self.num_superclients = len(self.superclients)
+            del method
     
     def _check_validity(self, n_superclients):
         if n_superclients <= self.num_clients:

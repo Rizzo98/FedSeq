@@ -1,0 +1,19 @@
+# @package _global_
+defaults:
+  - fedbase
+  - optim@algo.params: sgd
+  - loss@algo.params: crossentropy
+
+algo:
+  type: fedcyclic
+  classname: FedCyclic
+  params:
+    optim:
+      args:
+        momentum: 0
+    center_server:
+      classname: FedAvgCenterServer
+    client:
+      classname: FedAvgClient
+      args: {}
+  
