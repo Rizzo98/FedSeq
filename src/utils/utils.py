@@ -14,7 +14,7 @@ from matplotlib.pyplot import step
 import wandb
 from contextlib import contextmanager
 from typing import Union
-from omegaconf import DictConfig
+from omegaconf import DictConfig, open_dict
 
 import numpy as np
 import torch
@@ -106,6 +106,7 @@ class WanDBSummaryWriter:
             self.restore_run['model_weight'] = model['weight']
             self.restore_run['resume_round'] = model['round']
             self.local_store = json.load(wandb.restore('objects/local_store.json', run_path=run_path))
+            self.savedir = wandb.run.config['savedir']
         
     def _generate_project_run_name(self, config):
         project_name = ""
@@ -217,6 +218,12 @@ def select_random_subset(x, portion: float):
     to_drop_indexes = np.random.randint(0, input_len, to_drop_num)
     return np.delete(x, to_drop_indexes)
 
+
+def restore_dir(cfg: DictConfig, writer: WanDBSummaryWriter) -> DictConfig:
+        if cfg.wandb.restart_from_run is not None:
+            with open_dict(cfg):
+                cfg.savedir = writer.savedir
+        return cfg
 
 class MeasureMeter:
     def __init__(self, num_classes: int):

@@ -1,7 +1,7 @@
 import logging, hydra, os
 from omegaconf import OmegaConf, DictConfig
 from src.utils import test_on_data
-from src.utils import seed_everything, CustomSummaryWriter, WanDBSummaryWriter
+from src.utils import seed_everything, restore_dir, CustomSummaryWriter, WanDBSummaryWriter
 from src.algo import *
 
 log = logging.getLogger(__name__)
@@ -22,7 +22,9 @@ def main(cfg: DictConfig):
     log.info("\n" + OmegaConf.to_yaml(cfg))
     
     writer = WanDBSummaryWriter(cfg)
+    cfg = restore_dir(cfg, writer)
     writer.set_config(dict(cfg))
+    
     
     model: Algo = create_model(cfg, writer)
     if cfg.do_train:

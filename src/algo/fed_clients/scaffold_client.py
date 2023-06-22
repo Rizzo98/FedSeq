@@ -1,5 +1,6 @@
 import copy
 from typing import Optional
+import os
 import torch
 from torch.utils.data import DataLoader
 from src.algo.fed_clients.base_client import Client
@@ -10,18 +11,19 @@ class SCAFFOLDClient(Client):
     def __init__(self, client_id: int, dataloader: Optional[DataLoader], savedir: str, num_classes=None, device="cpu", dp=None):
         super().__init__(client_id, dataloader, savedir, num_classes, device, dp)
         self.old_controls = None
-        self.controls = None
         self.server_controls = None
+        self.client_path = os.path.join(self.savedir, f"controls_{self.client_id}.pt")
 
     @staticmethod
     def from_base_client(c: Client):
         return SCAFFOLDClient(c.client_id, c.dataloader, c.num_classes, c.device, c.dp)
 
     def init_controls(self):
-        if self.controls is None:
+        if not hasattr(self, 'controls'):
             self.controls = [torch.zeros_like(p.data, device="cpu") for p in
                              self.model.parameters() if p.requires_grad]
-
+        else:
+            self.controls = torch.load(self.client_path)
     def move_controls(self, device: str):
         for i in range(len(self.controls)):
             self.controls[i] = self.controls[i].to(device)
@@ -30,6 +32,7 @@ class SCAFFOLDClient(Client):
     def client_update(self, optimizer, optimizer_args, local_epoch, loss_fn):
         self.init_controls()
         # save model sent by server for computing delta_model
+        self.model.to(self.device)
         server_model = copy.deepcopy(self.model)
         self.model.train()
         op = optimizer(self.model.parameters(), **optimizer_args)
@@ -52,6 +55,7 @@ class SCAFFOLDClient(Client):
 
         # get new controls option 1 of scaffold algorithm
         batches = 0
+        server_model.to(self.device)
         op = optimizer(server_model.parameters(), **optimizer_args)
         server_model.train()
         for _ in range(local_epoch):
@@ -71,4 +75,7 @@ class SCAFFOLDClient(Client):
         delta = [torch.zeros_like(c, device="cpu") for c in self.controls]
         for d, new, old in zip(delta, self.controls, self.old_controls):
             d.data = new.data - old.data
+        del self.old_controls
+        torch.save(self.controls, self.client_path)
+        del self.controls
         return delta

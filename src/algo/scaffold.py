@@ -1,5 +1,7 @@
 from src.algo import FedAvg
 import logging
+import torch
+import os
 
 log = logging.getLogger(__name__)
 
@@ -16,3 +18,10 @@ class SCAFFOLD(FedAvg):
         for client in clients:
             client.server_controls = self.center_server.send_controls()
             client.model = self.center_server.send_model()
+
+    def load_from_checkpoint(self):
+        for client in self.clients:
+            client_path = client.client_path
+            if os.path.exists(client_path):
+                client.controls = torch.load(client.client_path)
+        super().load_from_checkpoint()
